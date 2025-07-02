@@ -24,8 +24,11 @@ namespace Floosy_Platform_DAL.Context
 
         }
 
-        //public DbSet<>  { get; set; }
-        
+        public DbSet<Income> Incomes { get; set; }
+        public DbSet<Expenses> Expenses { get; set; }
+        public DbSet<AnnualCalculation> AnnualCalculations { get; set; }
+        public DbSet<AppUser> AppUsers{ get; set; }
+
 
 
 
