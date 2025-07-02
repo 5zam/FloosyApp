@@ -27,9 +27,9 @@ namespace Floosy_Platform_BLL.Repositories
             return await _context.Set<T>().ToListAsync();
         }
 
-        public void Remove(int id)
+        public void Remove(T entity)
         {
-            _context.Remove(id);
+            _context.Remove(entity);
         }
 
         public async Task Save()

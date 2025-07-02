@@ -76,7 +76,13 @@ namespace Floosy_Platform_API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteIncome(int id)
         {
-            await _context.Remove(id);
+            var income = await _appdb.Incomes.FindAsync(id);
+            if (income == null)
+            {
+                return NotFound();
+            }
+
+            _context.Remove(income);
             await _context.Save();
 
             return NoContent();
