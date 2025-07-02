@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { map, tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { AuthResponse, LoginRequest, RegisterRequest, AppUser } from '../models/api.models';
 import { environment } from '../../environments/environment';
@@ -21,11 +21,22 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    // Load token from localStorage on service initialization
+    this.initializeAuth();
+  }
+  
+  private initializeAuth(): void {
     const token = localStorage.getItem('auth_token');
-    if (token) {
-      this.tokenSubject.next(token);
-      // TODO: Decode JWT to get user info or call API to get current user
+    const userData = localStorage.getItem('user_data');
+    
+    if (token && userData) {
+      try {
+        const user = JSON.parse(userData);
+        this.tokenSubject.next(token);
+        this.currentUserSubject.next(user);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        this.clearAuthData();
+      }
     }
   }
   
@@ -33,22 +44,32 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.API_URL}/login`, credentials)
       .pipe(
         tap(response => {
-          if (response.token) {
-            this.setToken(response.token);
+          // Handle both uppercase and lowercase token properties
+          const token = response.token || response.Token;
+          if (token) {
+            this.setAuthData(token);
           }
+        }),
+        catchError(error => {
+          console.error('Login error:', error);
+          return throwError(() => error);
         })
       );
   }
   
   register(userData: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/register`, userData);
+    return this.http.post<AuthResponse>(`${this.API_URL}/register`, userData)
+      .pipe(
+        catchError(error => {
+          console.error('Registration error:', error);
+          return throwError(() => error);
+        })
+      );
   }
   
   logout(): void {
-    localStorage.removeItem('auth_token');
-    this.tokenSubject.next(null);
-    this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+    this.clearAuthData();
+    this.router.navigate(['/']);
   }
   
   getToken(): string | null {
@@ -59,27 +80,70 @@ export class AuthService {
     const token = this.getToken();
     if (!token) return false;
     
-    // TODO: Check if token is expired
-    return true;
+    // Check if token is expired
+    try {
+      const payload = this.decodeJWTPayload(token);
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp > currentTime;
+    } catch (error) {
+      console.error('Token validation error:', error);
+      this.clearAuthData();
+      return false;
+    }
   }
   
   getCurrentUser(): AppUser | null {
     return this.currentUserSubject.value;
   }
   
-  private setToken(token: string): void {
+  private setAuthData(token: string): void {
     localStorage.setItem('auth_token', token);
     this.tokenSubject.next(token);
     
-    // TODO: Decode JWT to extract user info
-    // For now, we'll set a placeholder user
-    const user: AppUser = {
-      id: 'temp-id',
-      userName: 'temp-user',
-      email: 'temp@example.com',
-      fullName: 'Temp User',
-      emailConfirmed: true
-    };
-    this.currentUserSubject.next(user);
+    // Decode JWT to extract user info
+    try {
+      const payload = this.decodeJWTPayload(token);
+      const user: AppUser = {
+        id: payload.sub || payload.nameid || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || 'unknown',
+        userName: payload.unique_name || payload.name || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '',
+        email: payload.email || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || '',
+        fullName: payload.FullName || payload.given_name || payload.name || 'User',
+        emailConfirmed: true
+      };
+      
+      localStorage.setItem('user_data', JSON.stringify(user));
+      this.currentUserSubject.next(user);
+    } catch (error) {
+      console.error('Error decoding JWT:', error);
+      // Fallback user data
+      const fallbackUser: AppUser = {
+        id: 'temp-id',
+        userName: 'user',
+        email: 'user@example.com',
+        fullName: 'User',
+        emailConfirmed: true
+      };
+      localStorage.setItem('user_data', JSON.stringify(fallbackUser));
+      this.currentUserSubject.next(fallbackUser);
+    }
+  }
+  
+  private clearAuthData(): void {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_data');
+    this.tokenSubject.next(null);
+    this.currentUserSubject.next(null);
+  }
+  
+  private decodeJWTPayload(token: string): any {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
   }
 }

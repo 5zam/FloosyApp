@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject, forkJoin } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { IncomeService } from '../../services/income.service';
 import { ExpenseService } from '../../services/expense.service';
@@ -23,6 +23,20 @@ interface MenuItem {
   id: string;
   label: string;
   icon: string;
+  description: string;
+}
+
+interface StepProgress {
+  step: number;
+  isCompleted: boolean;
+  isActive: boolean;
+}
+
+interface StepNamesMap {
+  [key: string]: string;
+  expenses: string;
+  tax: string;
+  reports: string;
 }
 
 @Component({
@@ -40,6 +54,8 @@ export class Dashboard implements OnInit, OnDestroy {
   isLoading = true;
   errorMessage = '';
   successMessage = '';
+  showWelcomeGuide = false;
+  currentStep = 1;
   
   // User data
   currentUser: AppUser | null = null;
@@ -49,39 +65,49 @@ export class Dashboard implements OnInit, OnDestroy {
   expenses: Expenses[] = [];
   annualCalculations: AnnualCalculation[] = [];
   
-  // Form data
-  incomeForm: CreateIncomeRequest = {
-    userId: '',
-    employmentIncome: 0,
-    selfEmploymentIncome: 0,
-    rentalIncome: 0,
-    royaltyIncome: 0,
-    interestIncome: 0,
-    dividendSukukIncome: 0,
-    realEstateDisposalGains: 0,
-    retirementEosbIncome: 0,
-    prizeIncome: 0,
-    grants: 0,
-    boardMemberCompensation: 0,
-    month_year: new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
-  };
+  // Form data with better initialization
+  incomeForm: CreateIncomeRequest = this.getInitialIncomeForm();
+  expenseForm: CreateExpenseRequest = this.getInitialExpenseForm();
   
-  expenseForm: CreateExpenseRequest = {
-    userId: '',
-    education_Expenses: 0,
-    healthcare_Expenses: 0,
-    interest: 0,
-    zakat: 0,
-    month_year: new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
-  };
-  
-  // Menu items for sidebar
+  // Menu items with descriptions
   menuItems: MenuItem[] = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'income', label: 'Income', icon: '💰' },
-    { id: 'expenses', label: 'Expenses', icon: '💸' },
-    { id: 'tax', label: 'Tax Calculator', icon: '🧮' },
-    { id: 'reports', label: 'Reports', icon: '📈' }
+    { 
+      id: 'overview', 
+      label: 'Overview', 
+      icon: '📊',
+      description: 'View your financial summary and recent activity'
+    },
+    { 
+      id: 'income', 
+      label: 'Add Income', 
+      icon: '💰',
+      description: 'Record income from employment, rental, investments, etc.'
+    },
+    { 
+      id: 'expenses', 
+      label: 'Add Expenses', 
+      icon: '💸',
+      description: 'Track deductible expenses like education and healthcare'
+    },
+    { 
+      id: 'tax', 
+      label: 'Tax Calculator', 
+      icon: '🧮',
+      description: 'Calculate your annual tax liability'
+    },
+    { 
+      id: 'reports', 
+      label: 'Reports', 
+      icon: '📈',
+      description: 'Generate and export financial reports'
+    }
+  ];
+  
+  // Progress tracking
+  progressSteps: StepProgress[] = [
+    { step: 1, isCompleted: false, isActive: true },
+    { step: 2, isCompleted: false, isActive: false },
+    { step: 3, isCompleted: false, isActive: false }
   ];
   
   // Calculated totals
@@ -98,6 +124,15 @@ export class Dashboard implements OnInit, OnDestroy {
     return this.annualCalculationService.calculateTax(this.totalIncome, this.totalExpenses);
   }
 
+  get hasData(): boolean {
+    return this.incomes.length > 0 || this.expenses.length > 0;
+  }
+
+  get progressPercentage(): number {
+    const completedSteps = this.progressSteps.filter(step => step.isCompleted).length;
+    return (completedSteps / this.progressSteps.length) * 100;
+  }
+
   constructor(
     private authService: AuthService,
     private incomeService: IncomeService,
@@ -107,7 +142,16 @@ export class Dashboard implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Check if user is authenticated
+    this.initializeDashboard();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private initializeDashboard(): void {
+    // Check authentication
     this.currentUser = this.authService.getCurrentUser();
     if (!this.currentUser) {
       this.router.navigate(['/login']);
@@ -118,12 +162,24 @@ export class Dashboard implements OnInit, OnDestroy {
     this.incomeForm.userId = this.currentUser.id;
     this.expenseForm.userId = this.currentUser.id;
     
+    // Check if first visit
+    const hasVisited = localStorage.getItem('dashboard_visited');
+    if (!hasVisited) {
+      this.showWelcomeGuide = true;
+      localStorage.setItem('dashboard_visited', 'true');
+    }
+    
     this.loadDashboardData();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  // Welcome Guide Methods
+  startGuide(): void {
+    this.showWelcomeGuide = false;
+    this.setActiveSection('income');
+  }
+
+  skipGuide(): void {
+    this.showWelcomeGuide = false;
   }
 
   // UI Methods
@@ -134,6 +190,24 @@ export class Dashboard implements OnInit, OnDestroy {
   setActiveSection(section: string): void {
     this.activeSection = section;
     this.clearMessages();
+    
+    // Update step progress
+    this.updateStepProgress(section);
+  }
+
+  private updateStepProgress(section: string): void {
+    // Update progress based on user actions
+    if (section === 'income' && this.incomes.length > 0) {
+      this.progressSteps[0].isCompleted = true;
+      this.progressSteps[1].isActive = true;
+    }
+    if (section === 'expenses' && this.expenses.length > 0) {
+      this.progressSteps[1].isCompleted = true;
+      this.progressSteps[2].isActive = true;
+    }
+    if (section === 'tax' && this.hasData) {
+      this.progressSteps[2].isCompleted = true;
+    }
   }
 
   private clearMessages(): void {
@@ -141,49 +215,181 @@ export class Dashboard implements OnInit, OnDestroy {
     this.successMessage = '';
   }
 
-  // Data Loading
+  // Data Loading with better error handling
   private loadDashboardData(): void {
     this.isLoading = true;
     this.errorMessage = '';
     
-    // For now, we'll use mock user ID. In real implementation, get from JWT token
-    const userId = 1; // This should come from authenticated user
+    // Convert string ID to number for API calls
+    const userId = parseInt(this.currentUser?.id || '1');
     
-    // Load all data concurrently
+    // Load all data concurrently with proper error handling
     forkJoin({
       incomes: this.incomeService.getIncomesByUserId(userId),
-      expenses: this.expenseService.getAllExpenses(), // Note: Backend doesn't have getByUserId for expenses
+      expenses: this.expenseService.getAllExpenses(),
       calculations: this.annualCalculationService.getCalculationsByUserId(userId)
     }).pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
+      finalize(() => this.isLoading = false)
     ).subscribe({
       next: (data) => {
-        this.incomes = data.incomes;
-        this.expenses = data.expenses.filter(e => e.userId === userId.toString()); // Client-side filter
-        this.annualCalculations = data.calculations;
-        
-        this.calculateTotals();
-        this.generateRecentTransactions();
-        this.isLoading = false;
+        this.processLoadedData(data, userId);
+        this.updateProgress();
       },
       error: (error) => {
-        console.error('Error loading dashboard data:', error);
-        this.errorMessage = 'Failed to load dashboard data. Please try refreshing the page.';
-        this.isLoading = false;
-        
-        // Use mock data as fallback
-        this.loadMockData();
+        this.handleDataLoadError(error);
       }
     });
   }
 
+  private processLoadedData(data: any, userId: number): void {
+    this.incomes = Array.isArray(data.incomes) ? data.incomes : [];
+    this.expenses = Array.isArray(data.expenses) 
+      ? data.expenses.filter((e: Expenses) => e.userId === userId.toString()) 
+      : [];
+    this.annualCalculations = Array.isArray(data.calculations) ? data.calculations : [];
+    
+    this.calculateTotals();
+    this.generateRecentTransactions();
+    
+    // Show success message if user has no data yet
+    if (!this.hasData) {
+      this.successMessage = 'Welcome! Start by adding your income and expenses to track your taxes.';
+    }
+  }
+
+  private handleDataLoadError(error: any): void {
+    console.error('Error loading dashboard data:', error);
+    this.errorMessage = 'Unable to load your financial data. Using demo data for now.';
+    this.loadMockData();
+  }
+
+  private updateProgress(): void {
+    // Update progress steps based on actual data
+    if (this.incomes.length > 0) {
+      this.progressSteps[0].isCompleted = true;
+      this.progressSteps[1].isActive = true;
+    }
+    if (this.expenses.length > 0) {
+      this.progressSteps[1].isCompleted = true;
+      this.progressSteps[2].isActive = true;
+    }
+    if (this.hasData) {
+      this.progressSteps[2].isActive = true;
+    }
+  }
+
+  // Form Actions with improved feedback
+  saveIncomeData(): void {
+    this.clearMessages();
+    
+    if (!this.validateIncomeForm()) {
+      return;
+    }
+
+    this.isLoading = true;
+    
+    this.incomeService.createIncome(this.incomeForm).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isLoading = false)
+    ).subscribe({
+      next: (response) => {
+        this.successMessage = 'Income data saved successfully! You can now add expenses or calculate your tax.';
+        this.resetIncomeForm();
+        this.loadDashboardData();
+        
+        // Auto-suggest next step
+        setTimeout(() => {
+          if (this.expenses.length === 0) {
+            this.showNextStepSuggestion('expenses');
+          }
+        }, 2000);
+      },
+      error: (error) => {
+        console.error('Error saving income:', error);
+        this.errorMessage = 'Failed to save income data. Please check your inputs and try again.';
+      }
+    });
+  }
+
+  saveExpenseData(): void {
+    this.clearMessages();
+    
+    if (!this.validateExpenseForm()) {
+      return;
+    }
+
+    this.isLoading = true;
+    
+    this.expenseService.createExpense(this.expenseForm).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isLoading = false)
+    ).subscribe({
+      next: (response) => {
+        this.successMessage = 'Expense data saved successfully! You can now calculate your tax liability.';
+        this.resetExpenseForm();
+        this.loadDashboardData();
+        
+        // Auto-suggest tax calculation
+        setTimeout(() => {
+          this.showNextStepSuggestion('tax');
+        }, 2000);
+      },
+      error: (error) => {
+        console.error('Error saving expense:', error);
+        this.errorMessage = 'Failed to save expense data. Please check your inputs and try again.';
+      }
+    });
+  }
+
+  private showNextStepSuggestion(nextStep: string): void {
+    const stepNames: StepNamesMap = {
+      'expenses': 'add your tax-deductible expenses',
+      'tax': 'calculate your annual tax liability',
+      'reports': 'generate your financial reports'
+    };
+    
+    if (stepNames[nextStep]) {
+      this.successMessage += ` Ready to ${stepNames[nextStep]}?`;
+    }
+  }
+
+  // Helper methods
+  private getInitialIncomeForm(): CreateIncomeRequest {
+    return {
+      userId: '',
+      employmentIncome: 0,
+      selfEmploymentIncome: 0,
+      rentalIncome: 0,
+      royaltyIncome: 0,
+      interestIncome: 0,
+      dividendSukukIncome: 0,
+      realEstateDisposalGains: 0,
+      retirementEosbIncome: 0,
+      prizeIncome: 0,
+      grants: 0,
+      boardMemberCompensation: 0,
+      month_year: new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+    };
+  }
+
+  private getInitialExpenseForm(): CreateExpenseRequest {
+    return {
+      userId: '',
+      education_Expenses: 0,
+      healthcare_Expenses: 0,
+      interest: 0,
+      zakat: 0,
+      month_year: new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+    };
+  }
+
+  // Existing methods (calculateTotals, generateRecentTransactions, etc.) remain the same
   private calculateTotals(): void {
-    // Calculate total income
     this.totalIncome = this.incomes.reduce((total, income) => {
       return total + this.incomeService.calculateTotalIncome(income);
     }, 0);
     
-    // Calculate total expenses
     this.totalExpenses = this.expenses.reduce((total, expense) => {
       return total + this.expenseService.calculateTotalExpenses(expense);
     }, 0);
@@ -192,7 +398,6 @@ export class Dashboard implements OnInit, OnDestroy {
   private generateRecentTransactions(): void {
     const transactions: Transaction[] = [];
     
-    // Add income transactions
     this.incomes.slice(0, 3).forEach(income => {
       const totalAmount = this.incomeService.calculateTotalIncome(income);
       if (totalAmount > 0) {
@@ -207,7 +412,6 @@ export class Dashboard implements OnInit, OnDestroy {
       }
     });
     
-    // Add expense transactions
     this.expenses.slice(0, 3).forEach(expense => {
       const totalAmount = this.expenseService.calculateTotalExpenses(expense);
       if (totalAmount > 0) {
@@ -222,14 +426,12 @@ export class Dashboard implements OnInit, OnDestroy {
       }
     });
     
-    // Sort by date (most recent first)
     this.recentTransactions = transactions
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
   }
 
   private loadMockData(): void {
-    // Fallback mock data when API fails
     this.totalIncome = 45000;
     this.totalExpenses = 28500;
     
@@ -253,56 +455,7 @@ export class Dashboard implements OnInit, OnDestroy {
     ];
   }
 
-  // Form Actions
-  saveIncomeData(): void {
-    this.clearMessages();
-    
-    if (!this.validateIncomeForm()) {
-      return;
-    }
-
-    this.isLoading = true;
-    
-    this.incomeService.createIncome(this.incomeForm).subscribe({
-      next: (response) => {
-        this.successMessage = 'Income data saved successfully!';
-        this.resetIncomeForm();
-        this.loadDashboardData(); // Reload data
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error saving income:', error);
-        this.errorMessage = 'Failed to save income data. Please try again.';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  saveExpenseData(): void {
-    this.clearMessages();
-    
-    if (!this.validateExpenseForm()) {
-      return;
-    }
-
-    this.isLoading = true;
-    
-    this.expenseService.createExpense(this.expenseForm).subscribe({
-      next: (response) => {
-        this.successMessage = 'Expense data saved successfully!';
-        this.resetExpenseForm();
-        this.loadDashboardData(); // Reload data
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error saving expense:', error);
-        this.errorMessage = 'Failed to save expense data. Please try again.';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  // Form Validation
+  // Form validation methods remain the same
   private validateIncomeForm(): boolean {
     if (!this.incomeForm.month_year) {
       this.errorMessage = 'Please select a month/year';
@@ -340,37 +493,17 @@ export class Dashboard implements OnInit, OnDestroy {
     return true;
   }
 
-  // Form Reset
   private resetIncomeForm(): void {
-    this.incomeForm = {
-      userId: this.currentUser?.id || '',
-      employmentIncome: 0,
-      selfEmploymentIncome: 0,
-      rentalIncome: 0,
-      royaltyIncome: 0,
-      interestIncome: 0,
-      dividendSukukIncome: 0,
-      realEstateDisposalGains: 0,
-      retirementEosbIncome: 0,
-      prizeIncome: 0,
-      grants: 0,
-      boardMemberCompensation: 0,
-      month_year: new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
-    };
+    this.incomeForm = this.getInitialIncomeForm();
+    this.incomeForm.userId = this.currentUser?.id || '';
   }
 
   private resetExpenseForm(): void {
-    this.expenseForm = {
-      userId: this.currentUser?.id || '',
-      education_Expenses: 0,
-      healthcare_Expenses: 0,
-      interest: 0,
-      zakat: 0,
-      month_year: new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
-    };
+    this.expenseForm = this.getInitialExpenseForm();
+    this.expenseForm.userId = this.currentUser?.id || '';
   }
 
-  // Legacy Action Methods (for backward compatibility)
+  // Quick action methods
   addIncome(): void {
     this.setActiveSection('income');
   }

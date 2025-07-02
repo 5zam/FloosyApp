@@ -1,21 +1,97 @@
+<!-- Enhanced Home Page HTML -->
+<!-- src/app/pages/home/home.html -->
+
 <!-- Hero Section -->
 <section class="hero-section">
   <div class="container">
     <div class="hero-content">
       <div class="hero-text">
-        <h1>We focus on offering professionalism and competence!</h1>
+        <h1>Manage Your Taxes in Oman with Confidence!</h1>
         <p class="hero-description">
-          Flossy provides clients with differentiated and specialized service for income and tax management, 
-          always structured on the pillars that support Flossy: trust, credibility and ethics.
+          Flossy helps you calculate, track, and file your personal income taxes according to Oman's Royal Decree No. 56/2025. 
+          Stay compliant with the 5% tax rate while maximizing your deductions.
         </p>
-        <button class="btn btn-primary hero-btn" (click)="learnMore()">LEARN MORE</button>
-      </div>
-      <div class="hero-visual">
-        <div class="expense-card">
-          <h3>Expense Management</h3>
-          <p>Take control of your finances with comprehensive expense tracking and tax calculation tools</p>
-          <button class="btn btn-success" (click)="goToDashboard()">START MANAGING EXPENSES</button>
+        
+        <!-- Authentication-aware buttons -->
+        <div class="hero-actions">
+          <button *ngIf="!isAuthenticated" class="btn btn-primary hero-btn" (click)="getStarted()">
+            🚀 GET STARTED FREE
+          </button>
+          <button *ngIf="isAuthenticated" class="btn btn-primary hero-btn" (click)="goToDashboard()">
+            📊 GO TO DASHBOARD
+          </button>
+          <button class="btn btn-secondary hero-btn" (click)="learnMore()">
+            📖 LEARN ABOUT TAX LAW
+          </button>
         </div>
+
+        <!-- Trust indicators -->
+        <div class="trust-indicators">
+          <div class="trust-item">
+            <span class="trust-icon">🏛️</span>
+            <span>Compliant with Royal Decree 56/2025</span>
+          </div>
+          <div class="trust-item">
+            <span class="trust-icon">🔒</span>
+            <span>Secure & Private</span>
+          </div>
+          <div class="trust-item">
+            <span class="trust-icon">🇴🇲</span>
+            <span>Made for Oman</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hero-visual">
+        <div class="hero-card">
+          <h3>🧮 Tax Calculator Preview</h3>
+          <div class="calculator-preview">
+            <div class="calc-row">
+              <span>Annual Income:</span>
+              <span class="amount">OMR 60,000</span>
+            </div>
+            <div class="calc-row">
+              <span>Deductible Expenses:</span>
+              <span class="amount">OMR 8,000</span>
+            </div>
+            <div class="calc-row">
+              <span>Basic Exemption:</span>
+              <span class="amount">OMR 42,000</span>
+            </div>
+            <div class="calc-row total">
+              <span>Tax Due (5%):</span>
+              <span class="amount">OMR 500</span>
+            </div>
+          </div>
+          <button class="btn btn-success calculator-btn" (click)="goToDashboard()">
+            {{ isAuthenticated ? 'Calculate Your Tax' : 'Try Calculator' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>How Flossy Works</h2>
+      <p>Simple steps to manage your taxes efficiently</p>
+    </div>
+    
+    <div class="steps-container">
+      <div class="step-item" *ngFor="let step of howItWorksSteps; let i = index">
+        <div class="step-number">{{ step.number }}</div>
+        <div class="step-content">
+          <div class="step-icon">{{ step.icon }}</div>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.description }}</p>
+          <button class="btn btn-outline" (click)="executeStepAction(step)">
+            {{ step.action }}
+          </button>
+        </div>
+        <div class="step-connector" *ngIf="i < howItWorksSteps.length - 1"></div>
       </div>
     </div>
   </div>
@@ -51,7 +127,7 @@
 </section>
 
 <!-- Services Section -->
-<section class="services-section">
+<section class="services-section" id="services">
   <div class="container">
     <h2 class="section-title">SERVICES</h2>
     <p class="section-subtitle">Discover our comprehensive financial and tax management solutions</p>
@@ -64,6 +140,116 @@
         <ul class="service-features">
           <li *ngFor="let feature of service.features">{{ feature }}</li>
         </ul>
+        <button class="btn btn-primary service-btn" (click)="goToDashboard()">
+          {{ isAuthenticated ? 'Use Service' : 'Get Started' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Highlight Section -->
+<section class="features-section">
+  <div class="container">
+    <div class="features-content">
+      <div class="features-text">
+        <h2>Why Choose Flossy?</h2>
+        <div class="feature-list">
+          <div class="feature-item">
+            <div class="feature-icon">✅</div>
+            <div>
+              <h4>100% Tax Law Compliant</h4>
+              <p>Built specifically for Oman's Personal Income Tax Law (Royal Decree 56/2025)</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🚀</div>
+            <div>
+              <h4>Easy to Use</h4>
+              <p>Intuitive interface guides you through every step of tax calculation</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">💰</div>
+            <div>
+              <h4>Maximize Deductions</h4>
+              <p>Track all eligible expenses to minimize your tax liability legally</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">📊</div>
+            <div>
+              <h4>Real-time Calculations</h4>
+              <p>See your tax liability update instantly as you add income and expenses</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="features-visual">
+        <div class="feature-showcase">
+          <div class="showcase-header">
+            <h3>📱 Dashboard Preview</h3>
+          </div>
+          <div class="showcase-content">
+            <div class="mini-card">
+              <span class="mini-icon">💰</span>
+              <div>
+                <div class="mini-value">OMR 45,000</div>
+                <div class="mini-label">Total Income</div>
+              </div>
+            </div>
+            <div class="mini-card">
+              <span class="mini-icon">💸</span>
+              <div>
+                <div class="mini-value">OMR 8,500</div>
+                <div class="mini-label">Deductible Expenses</div>
+              </div>
+            </div>
+            <div class="mini-card highlight">
+              <span class="mini-icon">🧾</span>
+              <div>
+                <div class="mini-value">OMR 175</div>
+                <div class="mini-label">Tax Due</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary showcase-btn" (click)="goToDashboard()">
+            {{ isAuthenticated ? 'View Your Dashboard' : 'Try Free Demo' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section">
+  <div class="container">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+    <div class="faq-grid">
+      <div class="faq-item">
+        <h4>When does the new tax law take effect?</h4>
+        <p>The Personal Income Tax Law (Royal Decree 56/2025) takes effect from January 1, 2028.</p>
+      </div>
+      <div class="faq-item">
+        <h4>What is the tax rate in Oman?</h4>
+        <p>A flat 5% tax rate applies to annual income above OMR 42,000. The first OMR 42,000 is tax-free.</p>
+      </div>
+      <div class="faq-item">
+        <h4>What expenses can I deduct?</h4>
+        <p>Education, healthcare, mortgage interest, zakat, and charitable donations (up to 5% of income) are deductible.</p>
+      </div>
+      <div class="faq-item">
+        <h4>When do I need to file my tax return?</h4>
+        <p>Tax declarations must be submitted by June 30th for the previous tax year.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Is Flossy free to use?</h4>
+        <p>Yes, Flossy offers a free tier for basic tax calculations and income tracking.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Is my financial data secure?</h4>
+        <p>Absolutely. We use bank-level encryption and follow strict data protection standards.</p>
       </div>
     </div>
   </div>
@@ -73,12 +259,40 @@
 <section class="cta-section">
   <div class="container">
     <div class="cta-content">
-      <h2>Ready to take control of your finances?</h2>
-      <p>Join thousands of Omanis who trust Flossy for their tax and financial management needs.</p>
-      <div class="cta-buttons">
-        <button class="btn btn-primary" (click)="getStarted()">GET STARTED TODAY</button>
-        <button class="btn btn-secondary" (click)="viewDemo()">VIEW DEMO</button>
+      <h2>Ready to Simplify Your Tax Management?</h2>
+      <p>Join thousands of Omanis who trust Flossy for accurate, compliant tax calculations.</p>
+      
+      <div class="cta-stats">
+        <div class="stat-item">
+          <div class="stat-number">5%</div>
+          <div class="stat-label">Tax Rate</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">42K</div>
+          <div class="stat-label">Tax-Free Allowance</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">2028</div>
+          <div class="stat-label">Law Effective Year</div>
+        </div>
       </div>
+      
+      <div class="cta-buttons">
+        <button *ngIf="!isAuthenticated" class="btn btn-primary cta-btn" (click)="getStarted()">
+          🚀 Start Managing Your Taxes
+        </button>
+        <button *ngIf="isAuthenticated" class="btn btn-primary cta-btn" (click)="goToDashboard()">
+          📊 Go to Your Dashboard
+        </button>
+        <button class="btn btn-secondary cta-btn" (click)="viewDemo()">
+          👀 View Demo
+        </button>
+      </div>
+      
+      <p class="cta-note">
+        <span class="note-icon">🔒</span>
+        No credit card required • Free to start • Secure & private
+      </p>
     </div>
   </div>
 </section>

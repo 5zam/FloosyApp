@@ -1,12 +1,21 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 interface Service {
   icon: string;
   title: string;
   description: string;
   features: string[];
+}
+
+interface Step {
+  number: number;
+  title: string;
+  description: string;
+  icon: string;
+  action: string;
 }
 
 @Component({
@@ -68,21 +77,92 @@ export class Home {
     }
   ];
 
-  constructor(private router: Router) {}
+  howItWorksSteps: Step[] = [
+    {
+      number: 1,
+      title: 'Create Your Account',
+      description: 'Sign up for free and set up your profile with tax residency information',
+      icon: '👤',
+      action: 'Sign Up Now'
+    },
+    {
+      number: 2,
+      title: 'Add Your Income',
+      description: 'Record income from employment, rental, investments, and other sources',
+      icon: '💰',
+      action: 'Add Income'
+    },
+    {
+      number: 3,
+      title: 'Track Expenses',
+      description: 'Log tax-deductible expenses like education, healthcare, and mortgage interest',
+      icon: '💸',
+      action: 'Track Expenses'
+    },
+    {
+      number: 4,
+      title: 'Calculate & File',
+      description: 'Get your tax calculation and generate reports for submission',
+      icon: '📊',
+      action: 'Calculate Tax'
+    }
+  ];
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
+
+  get isAuthenticated(): boolean {
+    return this.authService.isAuthenticated();
+  }
 
   learnMore(): void {
     this.router.navigate(['/policy']);
   }
 
   goToDashboard(): void {
-    this.router.navigate(['/dashboard']);
+    if (this.isAuthenticated) {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/login'], { 
+        queryParams: { returnUrl: '/dashboard' } 
+      });
+    }
   }
 
   getStarted(): void {
-    this.router.navigate(['/login']);
+    if (this.isAuthenticated) {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/login']);
+    }
   }
 
   viewDemo(): void {
+    // For demo, just navigate to dashboard
     this.router.navigate(['/dashboard']);
+  }
+
+  executeStepAction(step: Step): void {
+    switch (step.number) {
+      case 1:
+        this.getStarted();
+        break;
+      case 2:
+      case 3:
+      case 4:
+        this.goToDashboard();
+        break;
+      default:
+        this.getStarted();
+    }
+  }
+
+  scrollToSection(sectionId: string): void {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 }

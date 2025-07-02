@@ -50,7 +50,7 @@ export interface AnnualCalculation {
   user?: AppUser;
 }
 
-// Auth DTOs
+// Auth DTOs - Updated to match backend response
 export interface RegisterRequest {
   fullName: string;
   email: string;
@@ -62,9 +62,15 @@ export interface LoginRequest {
   password: string;
 }
 
+// Updated AuthResponse to match both frontend and backend
 export interface AuthResponse {
-  token?: string;
-  message?: string;
+  success?: boolean;
+  token?: string;      // lowercase for frontend
+  Token?: string;      // uppercase for backend compatibility
+  message?: string;    // lowercase for frontend  
+  Message?: string;    // uppercase for backend compatibility
+  user?: AppUser;
+  errors?: string[];
 }
 
 // API Response wrapper

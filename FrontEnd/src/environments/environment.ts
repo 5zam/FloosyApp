@@ -1,7 +1,7 @@
 // src/environments/environment.ts
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5004', // Your backend URL
+  apiUrl: 'http://localhost:7063', // Your backend URL
   appName: 'Flossy',
   version: '1.0.0'
 };

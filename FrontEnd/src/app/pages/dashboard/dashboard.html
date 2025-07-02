@@ -1,16 +1,58 @@
+<!-- Complete Enhanced Dashboard HTML Template -->
+<!-- src/app/pages/dashboard/dashboard.html -->
+
 <!-- Dashboard Container -->
 <div class="dashboard-container">
   <div class="container-fluid">
     
+    <!-- Welcome Guide Modal -->
+    <div *ngIf="showWelcomeGuide" class="welcome-guide-overlay">
+      <div class="welcome-guide-modal">
+        <div class="guide-header">
+          <h2>👋 Welcome to Flossy!</h2>
+          <p>Let's get you started with managing your taxes in Oman</p>
+        </div>
+        <div class="guide-content">
+          <div class="guide-steps">
+            <div class="guide-step">
+              <div class="step-icon">💰</div>
+              <div>
+                <h3>Step 1: Add Your Income</h3>
+                <p>Record income from employment, rental properties, investments, and other sources</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="step-icon">💸</div>
+              <div>
+                <h3>Step 2: Track Deductible Expenses</h3>
+                <p>Add education, healthcare, and other tax-deductible expenses</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="step-icon">🧮</div>
+              <div>
+                <h3>Step 3: Calculate Your Tax</h3>
+                <p>See your annual tax liability based on Oman's 5% tax rate</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="guide-actions">
+          <button class="btn btn-primary" (click)="startGuide()">Get Started</button>
+          <button class="btn btn-secondary" (click)="skipGuide()">Skip Tour</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div *ngIf="isLoading" class="loading-overlay">
       <div class="loading-spinner">
         <div class="spinner"></div>
-        <p>Loading dashboard...</p>
+        <p>Loading your financial data...</p>
       </div>
     </div>
 
-    <!-- Error/Success Messages -->
+    <!-- Alert Messages -->
     <div *ngIf="errorMessage" class="alert alert-error">
       {{ errorMessage }}
       <button class="alert-close" (click)="errorMessage = ''">×</button>
@@ -21,29 +63,52 @@
     </div>
 
     <div class="dashboard-layout">
-      <!-- Sidebar -->
+      <!-- Enhanced Sidebar -->
       <div class="management-sidebar" [class.sidebar-collapsed]="!sidebarOpen">
         <div class="sidebar-header">
-          <h3 *ngIf="sidebarOpen">Financial Management</h3>
+          <div class="user-welcome" *ngIf="sidebarOpen && currentUser">
+            <div class="user-avatar">{{ currentUser.fullName.charAt(0).toUpperCase() }}</div>
+            <div class="user-info">
+              <h4>{{ currentUser.fullName }}</h4>
+              <p>Tax Year 2025</p>
+            </div>
+          </div>
           <button class="sidebar-toggle" (click)="toggleSidebar()">
-            <svg *ngIf="sidebarOpen" fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
-              <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"></path>
-            </svg>
-            <svg *ngIf="!sidebarOpen" fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
+            <svg fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
               <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"></path>
             </svg>
           </button>
         </div>
+
+        <!-- Progress Tracker -->
+        <div class="progress-section" *ngIf="sidebarOpen">
+          <h4>Your Progress</h4>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+          </div>
+          <div class="progress-steps">
+            <div class="progress-step" 
+                 *ngFor="let step of progressSteps" 
+                 [class.completed]="step.isCompleted"
+                 [class.active]="step.isActive">
+              <div class="step-number">{{ step.step }}</div>
+            </div>
+          </div>
+          <p class="progress-text">{{ progressPercentage }}% Complete</p>
+        </div>
         
         <nav class="sidebar-nav">
-          <a
-            *ngFor="let item of menuItems"
-            href="javascript:void(0)"
-            [class.nav-item-active]="activeSection === item.id"
-            (click)="setActiveSection(item.id)"
-            class="nav-item">
+          <a *ngFor="let item of menuItems"
+             href="javascript:void(0)"
+             [class.nav-item-active]="activeSection === item.id"
+             (click)="setActiveSection(item.id)"
+             class="nav-item"
+             [title]="item.description">
             <span class="nav-icon">{{ item.icon }}</span>
-            <span class="nav-label" *ngIf="sidebarOpen">{{ item.label }}</span>
+            <div class="nav-content" *ngIf="sidebarOpen">
+              <span class="nav-label">{{ item.label }}</span>
+              <span class="nav-description">{{ item.description }}</span>
+            </div>
           </a>
         </nav>
       </div>
@@ -54,17 +119,39 @@
         <!-- Overview Section -->
         <div *ngIf="activeSection === 'overview'" class="content-section">
           <div class="section-header">
-            <h1>Dashboard Overview</h1>
-            <p>Your financial summary at a glance</p>
+            <h1>Financial Overview</h1>
+            <p>Your comprehensive tax and financial summary</p>
           </div>
 
-          <!-- Summary Cards -->
-          <div class="summary-cards">
+          <!-- No Data State -->
+          <div *ngIf="!hasData" class="no-data-state">
+            <div class="no-data-illustration">📊</div>
+            <h2>Ready to Start Managing Your Taxes?</h2>
+            <p>Begin by adding your income sources and track your tax-deductible expenses.</p>
+            <div class="getting-started-cards">
+              <div class="start-card" (click)="setActiveSection('income')">
+                <div class="start-icon">💰</div>
+                <h3>Add Income First</h3>
+                <p>Start with employment, rental, or investment income</p>
+                <span class="start-action">Add Income →</span>
+              </div>
+              <div class="start-card" (click)="setActiveSection('expenses')">
+                <div class="start-icon">💸</div>
+                <h3>Track Expenses</h3>
+                <p>Record education, healthcare, and other deductions</p>
+                <span class="start-action">Add Expenses →</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Cards (shown when user has data) -->
+          <div *ngIf="hasData" class="summary-cards">
             <div class="summary-card income">
               <div class="card-icon">💰</div>
               <div class="card-content">
                 <div class="card-value">OMR {{ totalIncome | number:'1.0-0' }}</div>
-                <div class="card-label">Total Income</div>
+                <div class="card-label">Total Annual Income</div>
+                <div class="card-trend">{{ incomes.length }} income entries</div>
               </div>
             </div>
             
@@ -72,7 +159,8 @@
               <div class="card-icon">💸</div>
               <div class="card-content">
                 <div class="card-value">OMR {{ totalExpenses | number:'1.0-0' }}</div>
-                <div class="card-label">Total Expenses</div>
+                <div class="card-label">Tax-Deductible Expenses</div>
+                <div class="card-trend">{{ expenses.length }} expense entries</div>
               </div>
             </div>
             
@@ -80,7 +168,10 @@
               <div class="card-icon">📊</div>
               <div class="card-content">
                 <div class="card-value">OMR {{ netIncome | number:'1.0-0' }}</div>
-                <div class="card-label">Net Income</div>
+                <div class="card-label">Net Taxable Income</div>
+                <div class="card-trend" [class.positive]="netIncome > 42000">
+                  {{ netIncome > 42000 ? 'Above' : 'Below' }} exemption limit
+                </div>
               </div>
             </div>
             
@@ -88,7 +179,8 @@
               <div class="card-icon">🧾</div>
               <div class="card-content">
                 <div class="card-value">OMR {{ taxDue | number:'1.0-0' }}</div>
-                <div class="card-label">Tax Due (5%)</div>
+                <div class="card-label">Estimated Tax Due</div>
+                <div class="card-trend">5% rate applied</div>
               </div>
             </div>
           </div>
@@ -99,25 +191,37 @@
             <div class="action-grid">
               <button class="action-btn income-btn" (click)="setActiveSection('income')">
                 <span class="action-icon">💰</span>
-                <span>Add Income</span>
+                <div class="action-content">
+                  <span class="action-title">Add Income</span>
+                  <span class="action-desc">Record new income sources</span>
+                </div>
               </button>
               <button class="action-btn expense-btn" (click)="setActiveSection('expenses')">
                 <span class="action-icon">💸</span>
-                <span>Add Expense</span>
+                <div class="action-content">
+                  <span class="action-title">Add Expenses</span>
+                  <span class="action-desc">Track deductible expenses</span>
+                </div>
               </button>
               <button class="action-btn tax-btn" (click)="setActiveSection('tax')">
                 <span class="action-icon">🧮</span>
-                <span>Calculate Tax</span>
+                <div class="action-content">
+                  <span class="action-title">Calculate Tax</span>
+                  <span class="action-desc">View tax breakdown</span>
+                </div>
               </button>
               <button class="action-btn report-btn" (click)="setActiveSection('reports')">
                 <span class="action-icon">📈</span>
-                <span>View Reports</span>
+                <div class="action-content">
+                  <span class="action-title">Generate Reports</span>
+                  <span class="action-desc">Export tax documents</span>
+                </div>
               </button>
             </div>
           </div>
 
-          <!-- Recent Activity -->
-          <div class="recent-activity">
+          <!-- Recent Activity (only show if user has data) -->
+          <div *ngIf="hasData" class="recent-activity">
             <h2>Recent Transactions</h2>
             <div class="activity-list" *ngIf="recentTransactions.length > 0">
               <div class="activity-item" *ngFor="let transaction of recentTransactions">
@@ -131,171 +235,212 @@
                 </div>
               </div>
             </div>
-            <div *ngIf="recentTransactions.length === 0" class="no-data">
-              <p>No recent transactions found. Start by adding your income or expenses.</p>
-            </div>
           </div>
         </div>
 
-        <!-- Income Section -->
+        <!-- Enhanced Income Section -->
         <div *ngIf="activeSection === 'income'" class="content-section">
           <div class="section-header">
-            <h1>Add Income</h1>
-            <p>Record your income from various sources</p>
+            <h1>💰 Add Income Sources</h1>
+            <p>Record all your income sources for accurate tax calculation</p>
+            <div class="help-tip">
+              <span class="tip-icon">💡</span>
+              <span>Include all income types: employment, rental, investments, and business income</span>
+            </div>
           </div>
 
-          <form class="income-form" (ngSubmit)="saveIncomeData()">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="monthYear">Month/Year</label>
-                <input 
-                  type="text" 
-                  id="monthYear"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.month_year" 
-                  name="monthYear"
-                  placeholder="e.g., January 2025"
-                  required>
+          <form class="income-form" (ngSubmit)="saveIncomeData()" #incomeFormRef="ngForm">
+            <div class="form-section">
+              <h3>📅 Time Period</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="monthYear">Month/Year *</label>
+                  <input 
+                    type="text" 
+                    id="monthYear"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.month_year" 
+                    name="monthYear"
+                    placeholder="e.g., January 2025"
+                    required>
+                  <span class="field-help">Enter the month and year for this income period</span>
+                </div>
               </div>
             </div>
 
-            <div class="income-grid">
-              <div class="form-group">
-                <label for="employmentIncome">Employment Income (OMR)</label>
-                <input 
-                  type="number" 
-                  id="employmentIncome"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.employmentIncome" 
-                  name="employmentIncome"
-                  min="0" 
-                  step="0.01">
-              </div>
+            <div class="form-section">
+              <h3>💼 Employment & Business Income</h3>
+              <div class="income-grid">
+                <div class="form-group">
+                  <label for="employmentIncome">Employment Income (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="employmentIncome"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.employmentIncome" 
+                    name="employmentIncome"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Salary, wages, bonuses from employment</span>
+                </div>
 
-              <div class="form-group">
-                <label for="selfEmploymentIncome">Self-Employment Income (OMR)</label>
-                <input 
-                  type="number" 
-                  id="selfEmploymentIncome"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.selfEmploymentIncome" 
-                  name="selfEmploymentIncome"
-                  min="0" 
-                  step="0.01">
-              </div>
+                <div class="form-group">
+                  <label for="selfEmploymentIncome">Self-Employment Income (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="selfEmploymentIncome"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.selfEmploymentIncome" 
+                    name="selfEmploymentIncome"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Income from freelance work or business</span>
+                </div>
 
-              <div class="form-group">
-                <label for="rentalIncome">Rental Income (OMR)</label>
-                <input 
-                  type="number" 
-                  id="rentalIncome"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.rentalIncome" 
-                  name="rentalIncome"
-                  min="0" 
-                  step="0.01">
+                <div class="form-group">
+                  <label for="boardMemberCompensation">Board Member Compensation (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="boardMemberCompensation"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.boardMemberCompensation" 
+                    name="boardMemberCompensation"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Compensation for serving on boards</span>
+                </div>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label for="royaltyIncome">Royalty Income (OMR)</label>
-                <input 
-                  type="number" 
-                  id="royaltyIncome"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.royaltyIncome" 
-                  name="royaltyIncome"
-                  min="0" 
-                  step="0.01">
+            <div class="form-section">
+              <h3>🏠 Property & Investment Income</h3>
+              <div class="income-grid">
+                <div class="form-group">
+                  <label for="rentalIncome">Rental Income (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="rentalIncome"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.rentalIncome" 
+                    name="rentalIncome"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Income from renting properties</span>
+                </div>
+
+                <div class="form-group">
+                  <label for="realEstateDisposalGains">Real Estate Capital Gains (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="realEstateDisposalGains"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.realEstateDisposalGains" 
+                    name="realEstateDisposalGains"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Profit from selling properties</span>
+                </div>
+
+                <div class="form-group">
+                  <label for="interestIncome">Interest Income (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="interestIncome"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.interestIncome" 
+                    name="interestIncome"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Interest from banks, bonds, loans</span>
+                </div>
+
+                <div class="form-group">
+                  <label for="dividendSukukIncome">Dividend/Sukuk Income (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="dividendSukukIncome"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.dividendSukukIncome" 
+                    name="dividendSukukIncome"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Dividends from stocks, Sukuk profits</span>
+                </div>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label for="interestIncome">Interest Income (OMR)</label>
-                <input 
-                  type="number" 
-                  id="interestIncome"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.interestIncome" 
-                  name="interestIncome"
-                  min="0" 
-                  step="0.01">
-              </div>
+            <div class="form-section">
+              <h3>📋 Other Income Sources</h3>
+              <div class="income-grid">
+                <div class="form-group">
+                  <label for="royaltyIncome">Royalty Income (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="royaltyIncome"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.royaltyIncome" 
+                    name="royaltyIncome"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Income from intellectual property</span>
+                </div>
 
-              <div class="form-group">
-                <label for="dividendSukukIncome">Dividend/Sukuk Income (OMR)</label>
-                <input 
-                  type="number" 
-                  id="dividendSukukIncome"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.dividendSukukIncome" 
-                  name="dividendSukukIncome"
-                  min="0" 
-                  step="0.01">
-              </div>
+                <div class="form-group">
+                  <label for="retirementEosbIncome">Retirement/EOSB Income (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="retirementEosbIncome"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.retirementEosbIncome" 
+                    name="retirementEosbIncome"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Pension, end of service benefits</span>
+                </div>
 
-              <div class="form-group">
-                <label for="realEstateDisposalGains">Real Estate Gains (OMR)</label>
-                <input 
-                  type="number" 
-                  id="realEstateDisposalGains"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.realEstateDisposalGains" 
-                  name="realEstateDisposalGains"
-                  min="0" 
-                  step="0.01">
-              </div>
+                <div class="form-group">
+                  <label for="prizeIncome">Prize Income (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="prizeIncome"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.prizeIncome" 
+                    name="prizeIncome"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Lottery, competition winnings</span>
+                </div>
 
-              <div class="form-group">
-                <label for="retirementEosbIncome">Retirement/EOSB Income (OMR)</label>
-                <input 
-                  type="number" 
-                  id="retirementEosbIncome"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.retirementEosbIncome" 
-                  name="retirementEosbIncome"
-                  min="0" 
-                  step="0.01">
-              </div>
-
-              <div class="form-group">
-                <label for="prizeIncome">Prize Income (OMR)</label>
-                <input 
-                  type="number" 
-                  id="prizeIncome"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.prizeIncome" 
-                  name="prizeIncome"
-                  min="0" 
-                  step="0.01">
-              </div>
-
-              <div class="form-group">
-                <label for="grants">Grants (OMR)</label>
-                <input 
-                  type="number" 
-                  id="grants"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.grants" 
-                  name="grants"
-                  min="0" 
-                  step="0.01">
-              </div>
-
-              <div class="form-group">
-                <label for="boardMemberCompensation">Board Member Compensation (OMR)</label>
-                <input 
-                  type="number" 
-                  id="boardMemberCompensation"
-                  class="form-input" 
-                  [(ngModel)]="incomeForm.boardMemberCompensation" 
-                  name="boardMemberCompensation"
-                  min="0" 
-                  step="0.01">
+                <div class="form-group">
+                  <label for="grants">Grants (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="grants"
+                    class="form-input" 
+                    [(ngModel)]="incomeForm.grants" 
+                    name="grants"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Government or institutional grants</span>
+                </div>
               </div>
             </div>
 
             <div class="form-actions">
-              <button type="submit" class="btn btn-primary" [disabled]="isLoading">
-                {{ isLoading ? 'Saving...' : 'Save Income Data' }}
+              <button type="submit" class="btn btn-primary" [disabled]="isLoading || !incomeFormRef.valid">
+                <span *ngIf="!isLoading">💾 Save Income Data</span>
+                <span *ngIf="isLoading">⏳ Saving...</span>
               </button>
               <button type="button" class="btn btn-secondary" (click)="setActiveSection('overview')">
                 Cancel
@@ -304,81 +449,101 @@
           </form>
         </div>
 
-        <!-- Expenses Section -->
+        <!-- Enhanced Expenses Section -->
         <div *ngIf="activeSection === 'expenses'" class="content-section">
           <div class="section-header">
-            <h1>Add Expenses</h1>
-            <p>Record your tax-deductible expenses</p>
+            <h1>💸 Add Tax-Deductible Expenses</h1>
+            <p>Track expenses that can reduce your taxable income</p>
+            <div class="help-tip">
+              <span class="tip-icon">💡</span>
+              <span>Only include expenses that qualify for tax deductions under Oman law</span>
+            </div>
           </div>
 
-          <form class="expense-form" (ngSubmit)="saveExpenseData()">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="expenseMonthYear">Month/Year</label>
-                <input 
-                  type="text" 
-                  id="expenseMonthYear"
-                  class="form-input" 
-                  [(ngModel)]="expenseForm.month_year" 
-                  name="expenseMonthYear"
-                  placeholder="e.g., January 2025"
-                  required>
+          <form class="expense-form" (ngSubmit)="saveExpenseData()" #expenseFormRef="ngForm">
+            <div class="form-section">
+              <h3>📅 Time Period</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="expenseMonthYear">Month/Year *</label>
+                  <input 
+                    type="text" 
+                    id="expenseMonthYear"
+                    class="form-input" 
+                    [(ngModel)]="expenseForm.month_year" 
+                    name="expenseMonthYear"
+                    placeholder="e.g., January 2025"
+                    required>
+                  <span class="field-help">Enter the month and year for these expenses</span>
+                </div>
               </div>
             </div>
 
-            <div class="expense-grid">
-              <div class="form-group">
-                <label for="educationExpenses">Education Expenses (OMR)</label>
-                <input 
-                  type="number" 
-                  id="educationExpenses"
-                  class="form-input" 
-                  [(ngModel)]="expenseForm.education_Expenses" 
-                  name="educationExpenses"
-                  min="0" 
-                  step="0.01">
-              </div>
+            <div class="form-section">
+              <h3>🎓 Deductible Expenses</h3>
+              <div class="expense-grid">
+                <div class="form-group">
+                  <label for="educationExpenses">Education Expenses (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="educationExpenses"
+                    class="form-input" 
+                    [(ngModel)]="expenseForm.education_Expenses" 
+                    name="educationExpenses"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Tuition, books, course fees for self and family</span>
+                </div>
 
-              <div class="form-group">
-                <label for="healthcareExpenses">Healthcare Expenses (OMR)</label>
-                <input 
-                  type="number" 
-                  id="healthcareExpenses"
-                  class="form-input" 
-                  [(ngModel)]="expenseForm.healthcare_Expenses" 
-                  name="healthcareExpenses"
-                  min="0" 
-                  step="0.01">
-              </div>
+                <div class="form-group">
+                  <label for="healthcareExpenses">Healthcare Expenses (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="healthcareExpenses"
+                    class="form-input" 
+                    [(ngModel)]="expenseForm.healthcare_Expenses" 
+                    name="healthcareExpenses"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Medical bills, insurance premiums, treatments</span>
+                </div>
 
-              <div class="form-group">
-                <label for="interest">Interest (OMR)</label>
-                <input 
-                  type="number" 
-                  id="interest"
-                  class="form-input" 
-                  [(ngModel)]="expenseForm.interest" 
-                  name="interest"
-                  min="0" 
-                  step="0.01">
-              </div>
+                <div class="form-group">
+                  <label for="interest">Mortgage Interest (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="interest"
+                    class="form-input" 
+                    [(ngModel)]="expenseForm.interest" 
+                    name="interest"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Interest paid on primary residence mortgage</span>
+                </div>
 
-              <div class="form-group">
-                <label for="zakat">Zakat (OMR)</label>
-                <input 
-                  type="number" 
-                  id="zakat"
-                  class="form-input" 
-                  [(ngModel)]="expenseForm.zakat" 
-                  name="zakat"
-                  min="0" 
-                  step="0.01">
+                <div class="form-group">
+                  <label for="zakat">Zakat & Donations (OMR)</label>
+                  <input 
+                    type="number" 
+                    id="zakat"
+                    class="form-input" 
+                    [(ngModel)]="expenseForm.zakat" 
+                    name="zakat"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00">
+                  <span class="field-help">Zakat payments and charitable donations (up to 5% of income)</span>
+                </div>
               </div>
             </div>
 
             <div class="form-actions">
-              <button type="submit" class="btn btn-primary" [disabled]="isLoading">
-                {{ isLoading ? 'Saving...' : 'Save Expense Data' }}
+              <button type="submit" class="btn btn-primary" [disabled]="isLoading || !expenseFormRef.valid">
+                <span *ngIf="!isLoading">💾 Save Expense Data</span>
+                <span *ngIf="isLoading">⏳ Saving...</span>
               </button>
               <button type="button" class="btn btn-secondary" (click)="setActiveSection('overview')">
                 Cancel
@@ -387,83 +552,319 @@
           </form>
         </div>
 
-        <!-- Tax Calculator Section -->
+        <!-- Enhanced Tax Calculator Section -->
         <div *ngIf="activeSection === 'tax'" class="content-section">
           <div class="section-header">
-            <h1>Tax Calculator</h1>
-            <p>Calculate your annual tax liability</p>
+            <h1>🧮 Tax Calculator</h1>
+            <p>Calculate your annual tax liability under Oman's Personal Income Tax Law</p>
           </div>
 
           <div class="tax-calculator">
             <div class="tax-summary">
-              <div class="tax-row">
-                <span class="tax-label">Total Annual Expenses:</span>
-                <span class="tax-value">OMR {{ totalExpenses | number:'1.0-0' }}</span>
+              <h3>Tax Calculation Summary</h3>
+              <div class="calculation-steps">
+                <div class="calc-step">
+                  <span class="step-number">1</span>
+                  <div class="step-content">
+                    <div class="step-label">Total Annual Income</div>
+                    <div class="step-value">OMR {{ totalIncome | number:'1.0-0' }}</div>
+                  </div>
+                </div>
+                <div class="calc-step">
+                  <span class="step-number">2</span>
+                  <div class="step-content">
+                    <div class="step-label">Less: Tax-Deductible Expenses</div>
+                    <div class="step-value">- OMR {{ totalExpenses | number:'1.0-0' }}</div>
+                  </div>
+                </div>
+                <div class="calc-step">
+                  <span class="step-number">3</span>
+                  <div class="step-content">
+                    <div class="step-label">Net Income</div>
+                    <div class="step-value">OMR {{ netIncome | number:'1.0-0' }}</div>
+                  </div>
+                </div>
+                <div class="calc-step">
+                  <span class="step-number">4</span>
+                  <div class="step-content">
+                    <div class="step-label">Less: Basic Exemption</div>
+                    <div class="step-value">- OMR 42,000</div>
+                  </div>
+                </div>
+                <div class="calc-step final">
+                  <span class="step-number">5</span>
+                  <div class="step-content">
+                    <div class="step-label">Taxable Income</div>
+                    <div class="step-value">OMR {{ (netIncome - 42000) > 0 ? (netIncome - 42000) : 0 | number:'1.0-0' }}</div>
+                  </div>
+                </div>
               </div>
-              <div class="tax-row">
-                <span class="tax-label">Net Income:</span>
-                <span class="tax-value">OMR {{ netIncome | number:'1.0-0' }}</span>
-              </div>
-              <div class="tax-row">
-                <span class="tax-label">Basic Exemption:</span>
-                <span class="tax-value">OMR 42,000</span>
-              </div>
-              <div class="tax-row">
-                <span class="tax-label">Taxable Income:</span>
-                <span class="tax-value">OMR {{ (netIncome - 42000) > 0 ? (netIncome - 42000) : 0 | number:'1.0-0' }}</span>
-              </div>
-              <div class="tax-row highlight">
-                <span class="tax-label">Tax Due (5%):</span>
-                <span class="tax-value">OMR {{ taxDue | number:'1.0-0' }}</span>
+              
+              <div class="tax-result">
+                <div class="result-label">Annual Tax Due (5%)</div>
+                <div class="result-value">OMR {{ taxDue | number:'1.0-0' }}</div>
+                <div class="result-monthly">Monthly: OMR {{ (taxDue / 12) | number:'1.0-0' }}</div>
               </div>
             </div>
 
             <div class="tax-explanation">
-              <h3>How Tax is Calculated</h3>
-              <ul>
-                <li>Tax Rate: 5% on income above OMR 42,000</li>
-                <li>Basic Exemption: First OMR 42,000 is tax-free</li>
-                <li>Only net income (after deductible expenses) is taxed</li>
-                <li>Tax year runs from January 1 to December 31</li>
-              </ul>
+              <h3>🏛️ How Tax is Calculated in Oman</h3>
+              <div class="explanation-grid">
+                <div class="explanation-item">
+                  <div class="expl-icon">📊</div>
+                  <h4>Tax Rate</h4>
+                  <p>5% flat rate on income above OMR 42,000</p>
+                </div>
+                <div class="explanation-item">
+                  <div class="expl-icon">🎯</div>
+                  <h4>Basic Exemption</h4>
+                  <p>First OMR 42,000 of annual income is tax-free</p>
+                </div>
+                <div class="explanation-item">
+                  <div class="expl-icon">📅</div>
+                  <h4>Tax Year</h4>
+                  <p>January 1 to December 31 (calendar year)</p>
+                </div>
+                <div class="explanation-item">
+                  <div class="expl-icon">📋</div>
+                  <h4>Filing Deadline</h4>
+                  <p>Tax declaration due by June 30</p>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="!hasData" class="no-data-tax">
+              <div class="no-data-icon">📊</div>
+              <h3>No Data Available for Calculation</h3>
+              <p>Add your income and expenses first to see your tax calculation</p>
+              <div class="tax-actions">
+                <button class="btn btn-primary" (click)="setActiveSection('income')">Add Income First</button>
+                <button class="btn btn-secondary" (click)="setActiveSection('expenses')">Add Expenses</button>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Reports Section -->
+        <!-- Enhanced Reports Section -->
         <div *ngIf="activeSection === 'reports'" class="content-section">
           <div class="section-header">
-            <h1>Financial Reports</h1>
-            <p>View and export your financial reports</p>
+            <h1>📈 Financial Reports</h1>
+            <p>Generate and export your financial reports and tax documents</p>
           </div>
 
           <div class="reports-grid">
             <div class="report-card">
               <div class="report-icon">📊</div>
-              <h3>Annual Summary</h3>
-              <p>Complete overview of your yearly finances</p>
-              <button class="btn btn-primary">Generate Report</button>
+              <h3>Annual Tax Summary</h3>
+              <p>Complete overview of your yearly income, expenses, and tax calculation</p>
+              <div class="report-stats">
+                <span>Income: OMR {{ totalIncome | number:'1.0-0' }}</span>
+                <span>Tax Due: OMR {{ taxDue | number:'1.0-0' }}</span>
+              </div>
+              <button class="btn btn-primary" [disabled]="!hasData">
+                {{ hasData ? 'Generate Report' : 'Add Data First' }}
+              </button>
             </div>
 
             <div class="report-card">
               <div class="report-icon">🧾</div>
-              <h3>Tax Declaration</h3>
-              <p>Export tax declaration for submission</p>
-              <button class="btn btn-primary">Export PDF</button>
+              <h3>Tax Declaration Form</h3>
+              <p>Export official tax declaration ready for submission to authorities</p>
+              <div class="report-stats">
+                <span>Due: June 30, 2025</span>
+                <span>Status: {{ hasData ? 'Ready' : 'Pending Data' }}</span>
+              </div>
+              <button class="btn btn-primary" [disabled]="!hasData">
+                {{ hasData ? 'Export PDF' : 'Add Data First' }}
+              </button>
             </div>
 
             <div class="report-card">
               <div class="report-icon">📈</div>
-              <h3>Monthly Trends</h3>
-              <p>Track your financial trends over time</p>
-              <button class="btn btn-primary">View Trends</button>
+              <h3>Monthly Income Trends</h3>
+              <p>Track your financial trends and income patterns over time</p>
+              <div class="report-stats">
+                <span>Entries: {{ incomes.length + expenses.length }}</span>
+                <span>Period: 2025</span>
+              </div>
+              <button class="btn btn-primary" [disabled]="!hasData">
+                {{ hasData ? 'View Trends' : 'Add Data First' }}
+              </button>
             </div>
 
             <div class="report-card">
               <div class="report-icon">💰</div>
-              <h3>Income Analysis</h3>
-              <p>Detailed breakdown of income sources</p>
-              <button class="btn btn-primary">Analyze Income</button>
+              <h3>Income Source Analysis</h3>
+              <p>Detailed breakdown of your income sources and categories</p>
+              <div class="report-stats">
+                <span>Sources: {{ incomes.length }}</span>
+                <span>Total: OMR {{ totalIncome | number:'1.0-0' }}</span>
+              </div>
+              <button class="btn btn-primary" [disabled]="!hasData">
+                {{ hasData ? 'Analyze Income' : 'Add Data First' }}
+              </button>
+            </div>
+
+            <div class="report-card">
+              <div class="report-icon">💸</div>
+              <h3>Expense Breakdown</h3>
+              <p>Analyze your tax-deductible expenses by category</p>
+              <div class="report-stats">
+                <span>Categories: 4</span>
+                <span>Total: OMR {{ totalExpenses | number:'1.0-0' }}</span>
+              </div>
+              <button class="btn btn-primary" [disabled]="!hasData">
+                {{ hasData ? 'View Breakdown' : 'Add Data First' }}
+              </button>
+            </div>
+
+            <div class="report-card">
+              <div class="report-icon">🎯</div>
+              <h3>Tax Planning Report</h3>
+              <p>Strategic recommendations for optimizing your tax situation</p>
+              <div class="report-stats">
+                <span>Tax Rate: 5%</span>
+                <span>Savings: Calculate</span>
+              </div>
+              <button class="btn btn-primary" [disabled]="!hasData">
+                {{ hasData ? 'Get Recommendations' : 'Add Data First' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Export Options (only show if user has data) -->
+          <div *ngIf="hasData" class="export-section">
+            <h3>📤 Export Options</h3>
+            <p>Download your financial data in various formats</p>
+            <div class="export-buttons">
+              <button class="btn btn-secondary">
+                📊 Export to Excel
+              </button>
+              <button class="btn btn-secondary">
+                📄 Export to PDF
+              </button>
+              <button class="btn btn-secondary">
+                📋 Copy to Clipboard
+              </button>
+              <button class="btn btn-secondary">
+                📧 Email Report
+              </button>
+            </div>
+          </div>
+
+          <!-- Tax Calendar (additional helpful section) -->
+          <div class="tax-calendar-section">
+            <h3>📅 Important Tax Dates 2025</h3>
+            <div class="calendar-grid">
+              <div class="calendar-item">
+                <div class="calendar-date">
+                  <span class="month">JAN</span>
+                  <span class="day">1</span>
+                </div>
+                <div class="calendar-content">
+                  <h4>Tax Year Begins</h4>
+                  <p>Start tracking income and expenses for 2025</p>
+                </div>
+              </div>
+
+              <div class="calendar-item">
+                <div class="calendar-date">
+                  <span class="month">MAR</span>
+                  <span class="day">31</span>
+                </div>
+                <div class="calendar-content">
+                  <h4>Q1 Review</h4>
+                  <p>Review your first quarter financial data</p>
+                </div>
+              </div>
+
+              <div class="calendar-item important">
+                <div class="calendar-date">
+                  <span class="month">JUN</span>
+                  <span class="day">30</span>
+                </div>
+                <div class="calendar-content">
+                  <h4>Tax Declaration Due</h4>
+                  <p>Final deadline for submitting tax returns</p>
+                </div>
+              </div>
+
+              <div class="calendar-item">
+                <div class="calendar-date">
+                  <span class="month">DEC</span>
+                  <span class="day">31</span>
+                </div>
+                <div class="calendar-content">
+                  <h4>Tax Year Ends</h4>
+                  <p>Complete final tax calculations</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Help & Support Section (Additional) -->
+        <div *ngIf="activeSection === 'help'" class="content-section">
+          <div class="section-header">
+            <h1>❓ Help & Support</h1>
+            <p>Get assistance with using Flossy and understanding Oman's tax requirements</p>
+          </div>
+
+          <div class="help-sections">
+            <div class="help-category">
+              <h3>🚀 Getting Started</h3>
+              <div class="help-items">
+                <div class="help-item">
+                  <h4>How to add your first income entry</h4>
+                  <p>Step-by-step guide to recording your employment or business income</p>
+                  <button class="btn btn-secondary">View Guide</button>
+                </div>
+                <div class="help-item">
+                  <h4>Understanding tax-deductible expenses</h4>
+                  <p>Learn which expenses qualify for tax deductions in Oman</p>
+                  <button class="btn btn-secondary">Learn More</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="help-category">
+              <h3>🧮 Tax Calculations</h3>
+              <div class="help-items">
+                <div class="help-item">
+                  <h4>How is my tax calculated?</h4>
+                  <p>Understand the 5% tax rate and OMR 42,000 exemption</p>
+                  <button class="btn btn-secondary">Explain</button>
+                </div>
+                <div class="help-item">
+                  <h4>What if I have multiple income sources?</h4>
+                  <p>Learn how to handle employment, rental, and investment income</p>
+                  <button class="btn btn-secondary">Show Examples</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="help-category">
+              <h3>📞 Contact Support</h3>
+              <div class="contact-options">
+                <div class="contact-option">
+                  <div class="contact-icon">💬</div>
+                  <h4>Live Chat</h4>
+                  <p>Get instant help from our support team</p>
+                  <button class="btn btn-primary">Start Chat</button>
+                </div>
+                <div class="contact-option">
+                  <div class="contact-icon">📧</div>
+                  <h4>Email Support</h4>
+                  <p>Send us your questions and we'll respond within 24 hours</p>
+                  <button class="btn btn-secondary">Send Email</button>
+                </div>
+                <div class="contact-option">
+                  <div class="contact-icon">📞</div>
+                  <h4>Phone Support</h4>
+                  <p>Call us during business hours for immediate assistance</p>
+                  <a href="tel:+96824500000" class="btn btn-secondary">+968 2450 0000</a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -472,9 +873,3 @@
     </div>
   </div>
 </div>
-<!-- 
-                <span class="tax-label">Total Annual Income:</span>
-                <span class="tax-value">OMR {{ totalIncome | number:'1.0-0' }}</span>
-              </div>
-              <div class="tax-row">
--->
