@@ -11,7 +11,7 @@ namespace Floosy_Platform_BLL.Interfaces
         Task<IEnumerable<T>> GetAll();
         Task AddAsync(T entity);
         void Update(T entity);
-        void Remove(T entity);
+        void Remove(int id);
         Task Save();
 
     }
