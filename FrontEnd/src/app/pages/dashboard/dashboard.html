@@ -1,0 +1,85 @@
+<!-- Dashboard Container -->
+<div class="dashboard-container">
+  <div class="container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <h1>Dashboard</h1>
+      <p>Comprehensive overview of your financial status</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card income">
+        <div class="card-icon">💰</div>
+        <div class="card-content">
+          <div class="card-value">OMR {{ totalIncome | number:'1.0-0' }}</div>
+          <div class="card-label">Total Income</div>
+        </div>
+      </div>
+      
+      <div class="summary-card expense">
+        <div class="card-icon">💸</div>
+        <div class="card-content">
+          <div class="card-value">OMR {{ totalExpenses | number:'1.0-0' }}</div>
+          <div class="card-label">Total Expenses</div>
+        </div>
+      </div>
+      
+      <div class="summary-card net">
+        <div class="card-icon">📊</div>
+        <div class="card-content">
+          <div class="card-value">OMR {{ netIncome | number:'1.0-0' }}</div>
+          <div class="card-label">Net Income</div>
+        </div>
+      </div>
+      
+      <div class="summary-card tax">
+        <div class="card-icon">🧾</div>
+        <div class="card-content">
+          <div class="card-value">OMR {{ taxDue | number:'1.0-0' }}</div>
+          <div class="card-label">Tax Due (5%)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2>Quick Actions</h2>
+      <div class="action-grid">
+        <button class="action-btn income-btn" (click)="addIncome()">
+          <span class="action-icon">💰</span>
+          <span>Add Income</span>
+        </button>
+        <button class="action-btn expense-btn" (click)="addExpense()">
+          <span class="action-icon">💸</span>
+          <span>Add Expense</span>
+        </button>
+        <button class="action-btn tax-btn" (click)="calculateTax()">
+          <span class="action-icon">🧮</span>
+          <span>Calculate Tax</span>
+        </button>
+        <button class="action-btn report-btn" (click)="generateReport()">
+          <span class="action-icon">📈</span>
+          <span>Generate Report</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+      <h2>Recent Transactions</h2>
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let transaction of recentTransactions">
+          <div class="activity-icon">{{ transaction.icon }}</div>
+          <div class="activity-details">
+            <div class="activity-title">{{ transaction.title }}</div>
+            <div class="activity-date">{{ transaction.date }}</div>
+          </div>
+          <div class="activity-amount" [ngClass]="transaction.type">
+            {{ transaction.type === 'income' ? '+' : '-' }}OMR {{ transaction.amount }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
