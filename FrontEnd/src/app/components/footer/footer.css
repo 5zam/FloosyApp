@@ -1,8 +1,33 @@
+/* Enhanced Footer with Better Separation */
 .footer {
-  background: var(--primary-dark);
+  background: #1a2332; /* Slightly darker than primary-dark */
   color: white;
   padding: 3rem 0 1rem;
   margin-top: auto;
+  position: relative;
+  
+  /* Option 1: Top shadow for depth */
+  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.15);
+  
+  /* Option 2: Top border (you can use this instead of shadow) */
+  border-top: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Alternative: Add a subtle gradient overlay */
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.3) 20%, 
+    rgba(255, 255, 255, 0.5) 50%, 
+    rgba(255, 255, 255, 0.3) 80%, 
+    transparent 100%
+  );
 }
 
 .footer-content {
@@ -10,6 +35,8 @@
   grid-template-columns: 2fr repeat(4, 1fr);
   gap: 2rem;
   margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
 .footer-section h4 {
@@ -56,14 +83,29 @@
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   color: rgba(255,255,255,0.8);
   font-size: 0.9rem;
+  transition: all 0.3s ease;
 }
 
+.contact-item:hover {
+  color: white;
+  transform: translateX(5px);
+}
+
+/* Material Icon Styling for Contact Items */
 .contact-item .icon {
-  font-size: 1rem;
   width: 20px;
+  height: 20px;
+  fill: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.contact-item:hover .icon {
+  fill: var(--success);
+  transform: scale(1.1);
 }
 
 /* Footer Links */
@@ -82,11 +124,13 @@
   text-decoration: none;
   font-size: 0.9rem;
   transition: all 0.3s ease;
+  display: inline-block;
 }
 
 .footer-links a:hover {
   color: white;
   padding-left: 5px;
+  transform: translateX(3px);
 }
 
 /* Footer Bottom */
@@ -98,32 +142,91 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
+  position: relative;
 }
 
-/* Social Links */
+/* Enhanced Social Links with Material Icons */
 .social-links {
   display: flex;
   gap: 1rem;
 }
 
 .social-link {
-  display: inline-block;
-  padding: 0.5rem;
-  background: rgba(255,255,255,0.1);
-  border-radius: 50%;
-  text-decoration: none;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0.75rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  width: 45px;
+  height: 45px;
+  border: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.social-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.social-link:hover::before {
+  opacity: 1;
+}
+
+.social-link svg {
+  width: 20px;
+  height: 20px;
+  fill: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .social-link:hover {
   background: var(--success);
   transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+  border-color: var(--success);
+}
+
+.social-link:hover svg {
+  fill: white;
+  transform: scale(1.1);
+}
+
+/* Specific social media hover colors */
+.social-link:nth-child(1):hover { /* Facebook */
+  background: #1877F2;
+  box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);
+  border-color: #1877F2;
+}
+
+.social-link:nth-child(2):hover { /* Twitter */
+  background: #1DA1F2;
+  box-shadow: 0 8px 20px rgba(29, 161, 242, 0.3);
+  border-color: #1DA1F2;
+}
+
+.social-link:nth-child(3):hover { /* LinkedIn */
+  background: #0A66C2;
+  box-shadow: 0 8px 20px rgba(10, 102, 194, 0.3);
+  border-color: #0A66C2;
+}
+
+.social-link:nth-child(4):hover { /* Instagram */
+  background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
+  box-shadow: 0 8px 20px rgba(225, 48, 108, 0.3);
+  border-color: #E1306C;
 }
 
 /* Copyright */
@@ -137,6 +240,27 @@
   margin: 0;
 }
 
+/* Alternative Style Options - Choose One */
+
+/* Option A: More dramatic shadow */
+.footer.shadow-heavy {
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.25);
+  border-top: none;
+}
+
+/* Option B: Lighter background with stronger border */
+.footer.lighter-bg {
+  background: #2a3441;
+  border-top: 4px solid var(--success);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Option C: Gradient background */
+.footer.gradient-bg {
+  background: linear-gradient(135deg, #1a2332 0%, #0f172a 100%);
+  border-top: 2px solid rgba(255, 255, 255, 0.15);
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .footer-content {
@@ -146,6 +270,10 @@
 }
 
 @media (max-width: 768px) {
+  .footer {
+    padding: 2rem 0 1rem;
+  }
+
   .footer-content {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
@@ -156,13 +284,13 @@
     text-align: center;
     gap: 1rem;
   }
+  
+  .contact-item {
+    justify-content: center;
+  }
 }
 
 @media (max-width: 480px) {
-  .footer {
-    padding: 2rem 0 1rem;
-  }
-
   .footer-content {
     grid-template-columns: 1fr;
     gap: 2rem;
@@ -178,5 +306,9 @@
 
   .contact-list {
     align-items: center;
+  }
+  
+  .social-links {
+    justify-content: center;
   }
 }

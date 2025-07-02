@@ -52,6 +52,18 @@ namespace Floosy_Platform_API
                 };
             });
 
+            // ? CORS Configuration - ADD THIS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngularApp", policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
+
             // ? Password Policy
             builder.Services.Configure<IdentityOptions>(options =>
             {
@@ -79,6 +91,9 @@ namespace Floosy_Platform_API
             }
 
             app.UseHttpsRedirection();
+
+            // ? Use CORS - ADD THIS BEFORE AUTHENTICATION
+            app.UseCors("AllowAngularApp");
 
             app.UseAuthentication(); // ?? JWT Authentication
             app.UseAuthorization();

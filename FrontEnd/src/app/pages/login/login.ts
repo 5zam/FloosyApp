@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
+import { LoginRequest, RegisterRequest } from '../../models/api.models';
 
 interface SignInData {
   email: string;
@@ -28,6 +30,8 @@ interface SignUpData {
 export class Login {
   activeTab: 'signin' | 'signup' = 'signin';
   isLoading = false;
+  errorMessage = '';
+  successMessage = '';
 
   signInData: SignInData = {
     email: '',
@@ -45,80 +49,142 @@ export class Login {
     agreeTerms: false
   };
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   switchTab(tab: 'signin' | 'signup'): void {
     this.activeTab = tab;
+    this.clearMessages();
   }
 
   onSignIn(): void {
+    this.clearMessages();
+    
     if (!this.signInData.email || !this.signInData.password) {
-      alert('Please fill in all required fields');
+      this.errorMessage = 'Please fill in all required fields';
       return;
     }
 
     this.isLoading = true;
     
-    // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      alert('Login successful! Redirecting to dashboard...');
-      this.router.navigate(['/dashboard']);
-    }, 2000);
+    const loginRequest: LoginRequest = {
+      email: this.signInData.email,
+      password: this.signInData.password
+    };
+
+    this.authService.login(loginRequest).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        if (response.token) {
+          this.successMessage = 'Login successful! Redirecting to dashboard...';
+          setTimeout(() => {
+            this.router.navigate(['/dashboard']);
+          }, 1500);
+        } else {
+          this.errorMessage = response.message || 'Login failed';
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.error?.message || 'Login failed. Please try again.';
+        console.error('Login error:', error);
+      }
+    });
   }
 
   onSignUp(): void {
-    // Basic validation
+    this.clearMessages();
+    
+    // Validation
+    if (!this.validateSignUpForm()) {
+      return;
+    }
+
+    this.isLoading = true;
+    
+    const registerRequest: RegisterRequest = {
+      fullName: this.signUpData.fullName,
+      email: this.signUpData.email,
+      password: this.signUpData.password
+    };
+
+    this.authService.register(registerRequest).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        this.successMessage = 'Account created successfully! Please sign in.';
+        setTimeout(() => {
+          this.activeTab = 'signin';
+          this.resetSignUpForm();
+        }, 2000);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
+        console.error('Registration error:', error);
+      }
+    });
+  }
+
+  private validateSignUpForm(): boolean {
     if (!this.signUpData.fullName || 
         !this.signUpData.email || 
         !this.signUpData.phone || 
         !this.signUpData.password || 
         !this.signUpData.confirmPassword ||
         !this.signUpData.taxResidency) {
-      alert('Please fill in all required fields');
-      return;
+      this.errorMessage = 'Please fill in all required fields';
+      return false;
     }
 
     if (this.signUpData.password !== this.signUpData.confirmPassword) {
-      alert('Passwords do not match');
-      return;
+      this.errorMessage = 'Passwords do not match';
+      return false;
     }
 
     if (this.signUpData.password.length < 6) {
-      alert('Password must be at least 6 characters long');
-      return;
+      this.errorMessage = 'Password must be at least 6 characters long';
+      return false;
     }
 
     if (!this.signUpData.agreeTerms) {
-      alert('Please agree to the Terms of Service and Privacy Policy');
-      return;
+      this.errorMessage = 'Please agree to the Terms of Service and Privacy Policy';
+      return false;
     }
 
-    this.isLoading = true;
-    
-    // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      alert('Account created successfully! Please check your email for verification.');
-      this.activeTab = 'signin';
-      // Reset form
-      this.signUpData = {
-        fullName: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: '',
-        taxResidency: '',
-        agreeTerms: false
-      };
-    }, 2000);
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.signUpData.email)) {
+      this.errorMessage = 'Please enter a valid email address';
+      return false;
+    }
+
+    return true;
+  }
+
+  private resetSignUpForm(): void {
+    this.signUpData = {
+      fullName: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: '',
+      taxResidency: '',
+      agreeTerms: false
+    };
+  }
+
+  private clearMessages(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
   }
 
   signInWithGoogle(): void {
-    alert('Google Sign-In integration - Coming soon!');
+    this.errorMessage = 'Google Sign-In integration - Coming soon!';
   }
 
   signUpWithGoogle(): void {
-    alert('Google Sign-Up integration - Coming soon!');
+    this.errorMessage = 'Google Sign-Up integration - Coming soon!';
   }
 }

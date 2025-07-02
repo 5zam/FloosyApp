@@ -1,85 +1,480 @@
 <!-- Dashboard Container -->
 <div class="dashboard-container">
-  <div class="container">
-    <!-- Dashboard Header -->
-    <div class="dashboard-header">
-      <h1>Dashboard</h1>
-      <p>Comprehensive overview of your financial status</p>
-    </div>
-
-    <!-- Summary Cards -->
-    <div class="summary-cards">
-      <div class="summary-card income">
-        <div class="card-icon">💰</div>
-        <div class="card-content">
-          <div class="card-value">OMR {{ totalIncome | number:'1.0-0' }}</div>
-          <div class="card-label">Total Income</div>
-        </div>
-      </div>
-      
-      <div class="summary-card expense">
-        <div class="card-icon">💸</div>
-        <div class="card-content">
-          <div class="card-value">OMR {{ totalExpenses | number:'1.0-0' }}</div>
-          <div class="card-label">Total Expenses</div>
-        </div>
-      </div>
-      
-      <div class="summary-card net">
-        <div class="card-icon">📊</div>
-        <div class="card-content">
-          <div class="card-value">OMR {{ netIncome | number:'1.0-0' }}</div>
-          <div class="card-label">Net Income</div>
-        </div>
-      </div>
-      
-      <div class="summary-card tax">
-        <div class="card-icon">🧾</div>
-        <div class="card-content">
-          <div class="card-value">OMR {{ taxDue | number:'1.0-0' }}</div>
-          <div class="card-label">Tax Due (5%)</div>
-        </div>
+  <div class="container-fluid">
+    
+    <!-- Loading Overlay -->
+    <div *ngIf="isLoading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading dashboard...</p>
       </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <h2>Quick Actions</h2>
-      <div class="action-grid">
-        <button class="action-btn income-btn" (click)="addIncome()">
-          <span class="action-icon">💰</span>
-          <span>Add Income</span>
-        </button>
-        <button class="action-btn expense-btn" (click)="addExpense()">
-          <span class="action-icon">💸</span>
-          <span>Add Expense</span>
-        </button>
-        <button class="action-btn tax-btn" (click)="calculateTax()">
-          <span class="action-icon">🧮</span>
-          <span>Calculate Tax</span>
-        </button>
-        <button class="action-btn report-btn" (click)="generateReport()">
-          <span class="action-icon">📈</span>
-          <span>Generate Report</span>
-        </button>
-      </div>
+    <!-- Error/Success Messages -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+      {{ errorMessage }}
+      <button class="alert-close" (click)="errorMessage = ''">×</button>
+    </div>
+    <div *ngIf="successMessage" class="alert alert-success">
+      {{ successMessage }}
+      <button class="alert-close" (click)="successMessage = ''">×</button>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="recent-activity">
-      <h2>Recent Transactions</h2>
-      <div class="activity-list">
-        <div class="activity-item" *ngFor="let transaction of recentTransactions">
-          <div class="activity-icon">{{ transaction.icon }}</div>
-          <div class="activity-details">
-            <div class="activity-title">{{ transaction.title }}</div>
-            <div class="activity-date">{{ transaction.date }}</div>
+    <div class="dashboard-layout">
+      <!-- Sidebar -->
+      <div class="management-sidebar" [class.sidebar-collapsed]="!sidebarOpen">
+        <div class="sidebar-header">
+          <h3 *ngIf="sidebarOpen">Financial Management</h3>
+          <button class="sidebar-toggle" (click)="toggleSidebar()">
+            <svg *ngIf="sidebarOpen" fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
+              <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"></path>
+            </svg>
+            <svg *ngIf="!sidebarOpen" fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
+              <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+          <a
+            *ngFor="let item of menuItems"
+            href="javascript:void(0)"
+            [class.nav-item-active]="activeSection === item.id"
+            (click)="setActiveSection(item.id)"
+            class="nav-item">
+            <span class="nav-icon">{{ item.icon }}</span>
+            <span class="nav-label" *ngIf="sidebarOpen">{{ item.label }}</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Main Content -->
+      <div class="dashboard-main">
+        
+        <!-- Overview Section -->
+        <div *ngIf="activeSection === 'overview'" class="content-section">
+          <div class="section-header">
+            <h1>Dashboard Overview</h1>
+            <p>Your financial summary at a glance</p>
           </div>
-          <div class="activity-amount" [ngClass]="transaction.type">
-            {{ transaction.type === 'income' ? '+' : '-' }}OMR {{ transaction.amount }}
+
+          <!-- Summary Cards -->
+          <div class="summary-cards">
+            <div class="summary-card income">
+              <div class="card-icon">💰</div>
+              <div class="card-content">
+                <div class="card-value">OMR {{ totalIncome | number:'1.0-0' }}</div>
+                <div class="card-label">Total Income</div>
+              </div>
+            </div>
+            
+            <div class="summary-card expense">
+              <div class="card-icon">💸</div>
+              <div class="card-content">
+                <div class="card-value">OMR {{ totalExpenses | number:'1.0-0' }}</div>
+                <div class="card-label">Total Expenses</div>
+              </div>
+            </div>
+            
+            <div class="summary-card net">
+              <div class="card-icon">📊</div>
+              <div class="card-content">
+                <div class="card-value">OMR {{ netIncome | number:'1.0-0' }}</div>
+                <div class="card-label">Net Income</div>
+              </div>
+            </div>
+            
+            <div class="summary-card tax">
+              <div class="card-icon">🧾</div>
+              <div class="card-content">
+                <div class="card-value">OMR {{ taxDue | number:'1.0-0' }}</div>
+                <div class="card-label">Tax Due (5%)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="quick-actions">
+            <h2>Quick Actions</h2>
+            <div class="action-grid">
+              <button class="action-btn income-btn" (click)="setActiveSection('income')">
+                <span class="action-icon">💰</span>
+                <span>Add Income</span>
+              </button>
+              <button class="action-btn expense-btn" (click)="setActiveSection('expenses')">
+                <span class="action-icon">💸</span>
+                <span>Add Expense</span>
+              </button>
+              <button class="action-btn tax-btn" (click)="setActiveSection('tax')">
+                <span class="action-icon">🧮</span>
+                <span>Calculate Tax</span>
+              </button>
+              <button class="action-btn report-btn" (click)="setActiveSection('reports')">
+                <span class="action-icon">📈</span>
+                <span>View Reports</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="recent-activity">
+            <h2>Recent Transactions</h2>
+            <div class="activity-list" *ngIf="recentTransactions.length > 0">
+              <div class="activity-item" *ngFor="let transaction of recentTransactions">
+                <div class="activity-icon">{{ transaction.icon }}</div>
+                <div class="activity-details">
+                  <div class="activity-title">{{ transaction.title }}</div>
+                  <div class="activity-date">{{ transaction.date }}</div>
+                </div>
+                <div class="activity-amount" [ngClass]="transaction.type">
+                  {{ transaction.type === 'income' ? '+' : '-' }}OMR {{ transaction.amount | number:'1.0-0' }}
+                </div>
+              </div>
+            </div>
+            <div *ngIf="recentTransactions.length === 0" class="no-data">
+              <p>No recent transactions found. Start by adding your income or expenses.</p>
+            </div>
           </div>
         </div>
+
+        <!-- Income Section -->
+        <div *ngIf="activeSection === 'income'" class="content-section">
+          <div class="section-header">
+            <h1>Add Income</h1>
+            <p>Record your income from various sources</p>
+          </div>
+
+          <form class="income-form" (ngSubmit)="saveIncomeData()">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="monthYear">Month/Year</label>
+                <input 
+                  type="text" 
+                  id="monthYear"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.month_year" 
+                  name="monthYear"
+                  placeholder="e.g., January 2025"
+                  required>
+              </div>
+            </div>
+
+            <div class="income-grid">
+              <div class="form-group">
+                <label for="employmentIncome">Employment Income (OMR)</label>
+                <input 
+                  type="number" 
+                  id="employmentIncome"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.employmentIncome" 
+                  name="employmentIncome"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="selfEmploymentIncome">Self-Employment Income (OMR)</label>
+                <input 
+                  type="number" 
+                  id="selfEmploymentIncome"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.selfEmploymentIncome" 
+                  name="selfEmploymentIncome"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="rentalIncome">Rental Income (OMR)</label>
+                <input 
+                  type="number" 
+                  id="rentalIncome"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.rentalIncome" 
+                  name="rentalIncome"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="royaltyIncome">Royalty Income (OMR)</label>
+                <input 
+                  type="number" 
+                  id="royaltyIncome"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.royaltyIncome" 
+                  name="royaltyIncome"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="interestIncome">Interest Income (OMR)</label>
+                <input 
+                  type="number" 
+                  id="interestIncome"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.interestIncome" 
+                  name="interestIncome"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="dividendSukukIncome">Dividend/Sukuk Income (OMR)</label>
+                <input 
+                  type="number" 
+                  id="dividendSukukIncome"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.dividendSukukIncome" 
+                  name="dividendSukukIncome"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="realEstateDisposalGains">Real Estate Gains (OMR)</label>
+                <input 
+                  type="number" 
+                  id="realEstateDisposalGains"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.realEstateDisposalGains" 
+                  name="realEstateDisposalGains"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="retirementEosbIncome">Retirement/EOSB Income (OMR)</label>
+                <input 
+                  type="number" 
+                  id="retirementEosbIncome"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.retirementEosbIncome" 
+                  name="retirementEosbIncome"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="prizeIncome">Prize Income (OMR)</label>
+                <input 
+                  type="number" 
+                  id="prizeIncome"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.prizeIncome" 
+                  name="prizeIncome"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="grants">Grants (OMR)</label>
+                <input 
+                  type="number" 
+                  id="grants"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.grants" 
+                  name="grants"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="boardMemberCompensation">Board Member Compensation (OMR)</label>
+                <input 
+                  type="number" 
+                  id="boardMemberCompensation"
+                  class="form-input" 
+                  [(ngModel)]="incomeForm.boardMemberCompensation" 
+                  name="boardMemberCompensation"
+                  min="0" 
+                  step="0.01">
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+                {{ isLoading ? 'Saving...' : 'Save Income Data' }}
+              </button>
+              <button type="button" class="btn btn-secondary" (click)="setActiveSection('overview')">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Expenses Section -->
+        <div *ngIf="activeSection === 'expenses'" class="content-section">
+          <div class="section-header">
+            <h1>Add Expenses</h1>
+            <p>Record your tax-deductible expenses</p>
+          </div>
+
+          <form class="expense-form" (ngSubmit)="saveExpenseData()">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="expenseMonthYear">Month/Year</label>
+                <input 
+                  type="text" 
+                  id="expenseMonthYear"
+                  class="form-input" 
+                  [(ngModel)]="expenseForm.month_year" 
+                  name="expenseMonthYear"
+                  placeholder="e.g., January 2025"
+                  required>
+              </div>
+            </div>
+
+            <div class="expense-grid">
+              <div class="form-group">
+                <label for="educationExpenses">Education Expenses (OMR)</label>
+                <input 
+                  type="number" 
+                  id="educationExpenses"
+                  class="form-input" 
+                  [(ngModel)]="expenseForm.education_Expenses" 
+                  name="educationExpenses"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="healthcareExpenses">Healthcare Expenses (OMR)</label>
+                <input 
+                  type="number" 
+                  id="healthcareExpenses"
+                  class="form-input" 
+                  [(ngModel)]="expenseForm.healthcare_Expenses" 
+                  name="healthcareExpenses"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="interest">Interest (OMR)</label>
+                <input 
+                  type="number" 
+                  id="interest"
+                  class="form-input" 
+                  [(ngModel)]="expenseForm.interest" 
+                  name="interest"
+                  min="0" 
+                  step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="zakat">Zakat (OMR)</label>
+                <input 
+                  type="number" 
+                  id="zakat"
+                  class="form-input" 
+                  [(ngModel)]="expenseForm.zakat" 
+                  name="zakat"
+                  min="0" 
+                  step="0.01">
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+                {{ isLoading ? 'Saving...' : 'Save Expense Data' }}
+              </button>
+              <button type="button" class="btn btn-secondary" (click)="setActiveSection('overview')">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tax Calculator Section -->
+        <div *ngIf="activeSection === 'tax'" class="content-section">
+          <div class="section-header">
+            <h1>Tax Calculator</h1>
+            <p>Calculate your annual tax liability</p>
+          </div>
+
+          <div class="tax-calculator">
+            <div class="tax-summary">
+              <div class="tax-row">
+                <span class="tax-label">Total Annual Expenses:</span>
+                <span class="tax-value">OMR {{ totalExpenses | number:'1.0-0' }}</span>
+              </div>
+              <div class="tax-row">
+                <span class="tax-label">Net Income:</span>
+                <span class="tax-value">OMR {{ netIncome | number:'1.0-0' }}</span>
+              </div>
+              <div class="tax-row">
+                <span class="tax-label">Basic Exemption:</span>
+                <span class="tax-value">OMR 42,000</span>
+              </div>
+              <div class="tax-row">
+                <span class="tax-label">Taxable Income:</span>
+                <span class="tax-value">OMR {{ (netIncome - 42000) > 0 ? (netIncome - 42000) : 0 | number:'1.0-0' }}</span>
+              </div>
+              <div class="tax-row highlight">
+                <span class="tax-label">Tax Due (5%):</span>
+                <span class="tax-value">OMR {{ taxDue | number:'1.0-0' }}</span>
+              </div>
+            </div>
+
+            <div class="tax-explanation">
+              <h3>How Tax is Calculated</h3>
+              <ul>
+                <li>Tax Rate: 5% on income above OMR 42,000</li>
+                <li>Basic Exemption: First OMR 42,000 is tax-free</li>
+                <li>Only net income (after deductible expenses) is taxed</li>
+                <li>Tax year runs from January 1 to December 31</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div *ngIf="activeSection === 'reports'" class="content-section">
+          <div class="section-header">
+            <h1>Financial Reports</h1>
+            <p>View and export your financial reports</p>
+          </div>
+
+          <div class="reports-grid">
+            <div class="report-card">
+              <div class="report-icon">📊</div>
+              <h3>Annual Summary</h3>
+              <p>Complete overview of your yearly finances</p>
+              <button class="btn btn-primary">Generate Report</button>
+            </div>
+
+            <div class="report-card">
+              <div class="report-icon">🧾</div>
+              <h3>Tax Declaration</h3>
+              <p>Export tax declaration for submission</p>
+              <button class="btn btn-primary">Export PDF</button>
+            </div>
+
+            <div class="report-card">
+              <div class="report-icon">📈</div>
+              <h3>Monthly Trends</h3>
+              <p>Track your financial trends over time</p>
+              <button class="btn btn-primary">View Trends</button>
+            </div>
+
+            <div class="report-card">
+              <div class="report-icon">💰</div>
+              <h3>Income Analysis</h3>
+              <p>Detailed breakdown of income sources</p>
+              <button class="btn btn-primary">Analyze Income</button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 </div>
+<!-- 
+                <span class="tax-label">Total Annual Income:</span>
+                <span class="tax-value">OMR {{ totalIncome | number:'1.0-0' }}</span>
+              </div>
+              <div class="tax-row">
+-->

@@ -12,10 +12,17 @@
           <span>Sunday - Thursday: 8AM - 6PM</span>
         </div>
       </div>
-      <a href="#" class="user-area">
+      
+      <!-- User Area - Changes based on authentication state -->
+      <div class="user-area" *ngIf="!isAuthenticated">
         <span>👤</span>
         <span>Client Area</span>
-      </a>
+      </div>
+      
+      <div class="user-area authenticated" *ngIf="isAuthenticated && currentUser">
+        <span>👋</span>
+        <span>Welcome, {{ currentUser.fullName }}</span>
+      </div>
     </div>
   </div>
 </div>
@@ -33,9 +40,22 @@
       <!-- Navigation Menu -->
       <ul class="nav-menu">
         <li><a routerLink="/" class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">HOME</a></li>
-        <li><a routerLink="/dashboard" class="nav-item" routerLinkActive="active">DASHBOARD</a></li>
+        
+        <!-- Show Dashboard only if authenticated -->
+        <li *ngIf="isAuthenticated">
+          <a routerLink="/dashboard" class="nav-item" routerLinkActive="active">DASHBOARD</a>
+        </li>
+        
         <li><a routerLink="/policy" class="nav-item" routerLinkActive="active">POLICY</a></li>
-        <li><a routerLink="/login" class="nav-item login-btn">LOGIN</a></li>
+        
+        <!-- Authentication-based navigation -->
+        <li *ngIf="!isAuthenticated">
+          <a routerLink="/login" class="nav-item login-btn">LOGIN</a>
+        </li>
+        
+        <li *ngIf="isAuthenticated" class="user-menu">
+          <button class="nav-item logout-btn" (click)="logout()">LOGOUT</button>
+        </li>
       </ul>
 
       <!-- Mobile Menu Toggle -->
@@ -49,9 +69,15 @@
     <!-- Mobile Menu -->
     <div class="mobile-menu" [class.active]="isMobileMenuOpen">
       <a routerLink="/" class="mobile-nav-item" (click)="closeMobileMenu()">HOME</a>
-      <a routerLink="/dashboard" class="mobile-nav-item" (click)="closeMobileMenu()">DASHBOARD</a>
+      
+      <a *ngIf="isAuthenticated" routerLink="/dashboard" class="mobile-nav-item" (click)="closeMobileMenu()">DASHBOARD</a>
+      
       <a routerLink="/policy" class="mobile-nav-item" (click)="closeMobileMenu()">POLICY</a>
-      <a routerLink="/login" class="mobile-nav-item login-btn" (click)="closeMobileMenu()">LOGIN</a>
+      
+      <!-- Authentication-based mobile navigation -->
+      <a *ngIf="!isAuthenticated" routerLink="/login" class="mobile-nav-item login-btn" (click)="closeMobileMenu()">LOGIN</a>
+      
+      <button *ngIf="isAuthenticated" class="mobile-nav-item logout-btn" (click)="logout()">LOGOUT</button>
     </div>
   </div>
 </nav>
