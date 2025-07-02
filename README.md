@@ -67,7 +67,6 @@ Floosy/
 │       ├── Floosy_Platform_API/         # Web API Controllers
 │       ├── Floosy_Platform_BLL/         # Business Logic Layer
 │       ├── Floosy_Platform_DAL/         # Data Access Layer
-│       └── Floosy_Platform_Models/      # Data Models
 └── FrontEnd/                            # Angular Application
     ├── src/
     │   ├── app/
