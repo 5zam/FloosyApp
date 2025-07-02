@@ -1,4 +1,6 @@
 
+using Floosy_Platform_BLL.Interfaces;
+using Floosy_Platform_BLL.Repositories;
 using Floosy_Platform_DAL.Context;
 using Floosy_Platform_Models;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +18,8 @@ namespace Floosy_Platform_API
             builder.Services.AddIdentity<AppUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
             builder.Services.Configure<IdentityOptions>(options =>
             {
                 // Password settings
