@@ -67,7 +67,6 @@ Floosy/
 │       ├── Floosy_Platform_API/         # Web API Controllers
 │       ├── Floosy_Platform_BLL/         # Business Logic Layer
 │       ├── Floosy_Platform_DAL/         # Data Access Layer
-│       └── Floosy_Platform_Models/      # Data Models
 └── FrontEnd/                            # Angular Application
     ├── src/
     │   ├── app/
@@ -239,60 +238,6 @@ Tax Due = Taxable Income × 0.05
 - **Warning Orange**: `#F59E0B`
 - **Danger Red**: `#EF4444`
 
-## 🧪 Testing
 
-### Backend Testing
-```bash
-cd BackEnd/Floosy_Platform
-dotnet test
-```
-
-### Frontend Testing
-```bash
-cd FrontEnd
-npm test
-```
-
-## 🚀 Deployment
-
-### Backend Deployment
-1. Update connection string for production
-2. Set environment to Production
-3. Publish to IIS or cloud platform
-
-### Frontend Deployment
-```bash
-# Build for production
-ng build --configuration production
-
-# Deploy dist/ folder to web server
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-- **Email**: info@flossy.om
-- **Phone**: +968 2450 0000
-- **Hours**: Sunday - Thursday: 8AM - 6PM
-
-## 🙏 Acknowledgments
-
-- **Royal Decree No. 56/2025** - Oman's Personal Income Tax Law
-- **Angular Team** - For the amazing framework
-- **Microsoft** - For ASP.NET Core and Entity Framework
-- **Community** - For continuous support and feedback
-
----
 
 **Built with ❤️ for Oman's financial future**

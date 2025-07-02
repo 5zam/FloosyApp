@@ -1,19 +1,49 @@
 .login-container {
-  padding: 3rem 0;
-  min-height: 80vh;
-  background: var(--accent-light);
   display: flex;
+  justify-content: center;
   align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: var(--accent-light);
+}
+
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .login-card {
+  width: 500px;
+  min-height: 500px;
+  max-height: 600px;
+  padding: 2rem;
   background: white;
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 3rem;
-  border-radius: 12px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  /* Hide scrollbar for webkit browsers */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.login-card::-webkit-scrollbar {
+  display: none; /* Webkit browsers */
+}
+
+/* تأثير الخلفية للمربع */
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-dark), var(--accent-light));
 }
 
 /* Login Logo */
@@ -22,40 +52,40 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .login-logo-image {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 
 .login-logo-text {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: bold;
   color: var(--primary-dark);
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
 }
 
 /* Login Tabs */
 .login-tabs {
   display: flex;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--border-light);
   border-radius: 0;
 }
 
 .tab-button {
   flex: 1;
-  padding: 1rem;
+  padding: 0.75rem;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--secondary-grey);
-  border-bottom: 3px solid transparent;
+  border-bottom: 2px solid transparent;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -73,6 +103,8 @@
 /* Tab Content */
 .tab-content {
   display: none;
+  flex: 1;
+  padding: 0.5rem 0;
 }
 
 .tab-content.active {
@@ -82,20 +114,33 @@
 /* Login Form */
 .login-form {
   text-align: left;
+  margin-bottom: 1rem;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
 }
 
-.form-input {
+.form-input, .form-input select {
   width: 100%;
-  padding: 1rem;
+  padding: 0.7rem;
   border: 2px solid var(--border-light);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
   background: white;
+  box-sizing: border-box;
+}
+
+/* خاص بـ select */
+select.form-input {
+  cursor: pointer;
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 0.65rem;
+  padding-right: 2.5rem;
 }
 
 .form-input:focus {
@@ -112,30 +157,32 @@
 .form-options {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .checkbox-label {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
+  align-items: flex-start;
+  gap: 0.4rem;
   color: var(--secondary-grey);
   cursor: pointer;
+  line-height: 1.4;
+  max-width: 100%;
 }
 
 .checkbox-label input[type="checkbox"] {
   width: auto;
   margin: 0;
+  transform: scale(0.9);
 }
 
 .forgot-link {
   color: var(--primary-dark);
   text-decoration: none;
-  font-size: 0.9rem;
   font-weight: 500;
 }
 
@@ -144,11 +191,37 @@
 }
 
 /* Buttons */
+.btn {
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: var(--primary-dark);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--secondary-grey);
+  border: 2px solid var(--border-light);
+}
+
 .login-btn {
   width: 100%;
-  padding: 1rem;
-  font-size: 1rem;
-  margin-top: 1rem;
+  padding: 0.8rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.8rem;
 }
 
 .login-btn:disabled {
@@ -159,15 +232,16 @@
 
 .google-btn {
   width: 100%;
-  padding: 1rem;
+  padding: 0.8rem;
   border: 2px solid var(--border-light);
   background: white;
   color: var(--secondary-grey);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
   font-weight: 600;
+  font-size: 0.85rem;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -177,24 +251,24 @@
   border-color: var(--primary-dark);
   background: var(--accent-light);
   color: var(--primary-dark);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .google-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 /* Divider */
 .divider {
-  margin: 2rem 0;
+  margin: 1rem 0;
   text-align: center;
   color: var(--text-light);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   position: relative;
 }
 
 .divider::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 0;
@@ -205,18 +279,20 @@
 }
 
 .divider::after {
-  content: 'OR';
+  content: "OR";
   background: white;
-  padding: 0 1rem;
+  padding: 0 0.8rem;
   position: relative;
   z-index: 2;
 }
 
 /* Help Section */
 .help-section {
-  margin-top: 2rem;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--secondary-grey);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
 }
 
 .help-link {
@@ -242,70 +318,66 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .login-container {
-    padding: 2rem 0;
+    padding: 1rem;
   }
-  
+
   .login-card {
-    margin: 0 1rem;
-    padding: 2rem;
-    max-width: none;
+    width: 400px;
+    min-height: 450px;
+    padding: 1.5rem;
   }
-  
-  .login-logo {
-    margin-bottom: 1.5rem;
-  }
-  
+
   .login-logo-text {
-    font-size: 24px;
+    font-size: 20px;
   }
-  
+
   .login-logo-image {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
   }
-  
-  .login-tabs {
-    margin-bottom: 2rem;
-  }
-  
+
   .tab-button {
-    padding: 0.75rem;
-    font-size: 0.9rem;
+    padding: 0.6rem;
+    font-size: 0.8rem;
   }
-  
+
   .form-options {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .login-card {
-    padding: 1.5rem;
+    width: 340px;
+    min-height: 400px;
+    padding: 1.2rem;
   }
-  
-  .form-input {
-    padding: 0.875rem;
-  }
-  
-  .login-btn,
-  .google-btn {
-    padding: 0.875rem;
-  }
-  
-  .checkbox-label {
+
+  .form-input, .login-btn, .google-btn {
+    padding: 0.7rem;
     font-size: 0.85rem;
+  }
+
+  .checkbox-label {
+    font-size: 0.75rem;
+  }
+
+  .login-logo {
+    margin-bottom: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.7rem;
   }
 }
 
-
 /* Alert Messages */
 .alert {
-  padding: 12px 16px;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 0.8rem;
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
