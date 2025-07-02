@@ -1,1 +1,57 @@
-<p>navbar works!</p>
+<!-- Top Header -->
+<div class="top-header">
+  <div class="container">
+    <div class="top-header-content">
+      <div class="contact-info">
+        <div class="contact-item">
+          <span>📞</span>
+          <span>+968 2450 0000</span>
+        </div>
+        <div class="contact-item">
+          <span>🕒</span>
+          <span>Sunday - Thursday: 8AM - 6PM</span>
+        </div>
+      </div>
+      <a href="#" class="user-area">
+        <span>👤</span>
+        <span>Client Area</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Main Navigation -->
+<nav class="main-navbar">
+  <div class="container">
+    <div class="nav-content">
+      <!-- Logo -->
+      <div class="logo">
+        <img src="assets/images/logo-black.png" alt="Flossy Logo" class="logo-image">
+        <span class="logo-text">FLOSSY</span>
+      </div>
+
+      <!-- Navigation Menu -->
+      <ul class="nav-menu">
+        <li><a routerLink="/" class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">HOME</a></li>
+        <li><a routerLink="/dashboard" class="nav-item" routerLinkActive="active">DASHBOARD</a></li>
+        <li><a routerLink="/policy" class="nav-item" routerLinkActive="active">POLICY</a></li>
+        <li><a routerLink="/login" class="nav-item login-btn">LOGIN</a></li>
+      </ul>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-toggle" (click)="toggleMobileMenu()">
+        <span class="hamburger"></span>
+        <span class="hamburger"></span>
+        <span class="hamburger"></span>
+      </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" [class.active]="isMobileMenuOpen">
+      <a routerLink="/" class="mobile-nav-item" (click)="closeMobileMenu()">HOME</a>
+      <a routerLink="/dashboard" class="mobile-nav-item" (click)="closeMobileMenu()">DASHBOARD</a>
+      <a routerLink="/policy" class="mobile-nav-item" (click)="closeMobileMenu()">POLICY</a>
+      <a routerLink="/login" class="mobile-nav-item login-btn" (click)="closeMobileMenu()">LOGIN</a>
+    </div>
+  </div>
+</nav>

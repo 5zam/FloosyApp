@@ -1,1 +1,84 @@
-<p>home works!</p>
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1>We focus on offering professionalism and competence!</h1>
+        <p class="hero-description">
+          Flossy provides clients with differentiated and specialized service for income and tax management, 
+          always structured on the pillars that support Flossy: trust, credibility and ethics.
+        </p>
+        <button class="btn btn-primary hero-btn" (click)="learnMore()">LEARN MORE</button>
+      </div>
+      <div class="hero-visual">
+        <div class="expense-card">
+          <h3>Expense Management</h3>
+          <p>Take control of your finances with comprehensive expense tracking and tax calculation tools</p>
+          <button class="btn btn-success" (click)="goToDashboard()">START MANAGING EXPENSES</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Values Section -->
+<section class="values-section">
+  <div class="values-container">
+    <div class="value-card trust">
+      <div class="value-icon">🛡️</div>
+      <h3 class="value-title">TRUST</h3>
+      <p class="value-description">
+        We structure all our activities based on total trust, 
+        through integrated and quality work.
+      </p>
+    </div>
+    <div class="value-card credibility">
+      <div class="value-icon">⭐</div>
+      <h3 class="value-title">CREDIBILITY</h3>
+      <p class="value-description">
+        A quality that is conquered with excellent work, 
+        performed uniformly to all our clients.
+      </p>
+    </div>
+    <div class="value-card ethics">
+      <div class="value-icon">⚖️</div>
+      <h3 class="value-title">ETHICS</h3>
+      <p class="value-description">
+        A fundamental pillar based on our values, defining criteria for handling our clients' information.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Services Section -->
+<section class="services-section">
+  <div class="container">
+    <h2 class="section-title">SERVICES</h2>
+    <p class="section-subtitle">Discover our comprehensive financial and tax management solutions</p>
+    
+    <div class="services-grid">
+      <div class="service-card" *ngFor="let service of services">
+        <div class="service-icon">{{ service.icon }}</div>
+        <h3 class="service-title">{{ service.title }}</h3>
+        <p class="service-description">{{ service.description }}</p>
+        <ul class="service-features">
+          <li *ngFor="let feature of service.features">{{ feature }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-content">
+      <h2>Ready to take control of your finances?</h2>
+      <p>Join thousands of Omanis who trust Flossy for their tax and financial management needs.</p>
+      <div class="cta-buttons">
+        <button class="btn btn-primary" (click)="getStarted()">GET STARTED TODAY</button>
+        <button class="btn btn-secondary" (click)="viewDemo()">VIEW DEMO</button>
+      </div>
+    </div>
+  </div>
+</section>

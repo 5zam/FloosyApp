@@ -1,1 +1,143 @@
-<p>login works!</p>
+<!-- Login Container -->
+<div class="login-container">
+  <div class="container">
+    <div class="login-card">
+      
+      <!-- Logo -->
+      <div class="login-logo">
+        <img src="assets/images/logo-dark.png" alt="Flossy Logo" class="login-logo-image">
+        <span class="login-logo-text">FLOSSY</span>
+      </div>
+
+      <!-- Login Tabs -->
+      <div class="login-tabs">
+        <button 
+          class="tab-button" 
+          [class.active]="activeTab === 'signin'"
+          (click)="switchTab('signin')">
+          Sign In
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="activeTab === 'signup'"
+          (click)="switchTab('signup')">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Sign In Form -->
+      <div class="tab-content" [class.active]="activeTab === 'signin'">
+        <form class="login-form" (ngSubmit)="onSignIn()">
+          <div class="form-group">
+            <input 
+              type="email" 
+              class="form-input" 
+              placeholder="Email or Username" 
+              [(ngModel)]="signInData.email"
+              required>
+          </div>
+          <div class="form-group">
+            <input 
+              type="password" 
+              class="form-input" 
+              placeholder="Password" 
+              [(ngModel)]="signInData.password"
+              required>
+          </div>
+          <div class="form-options">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="signInData.rememberMe">
+              <span>Remember me</span>
+            </label>
+            <a href="#" class="forgot-link">Forgot password?</a>
+          </div>
+          <button type="submit" class="btn btn-primary login-btn" [disabled]="isLoading">
+            {{ isLoading ? 'Signing In...' : 'SIGN IN' }}
+          </button>
+        </form>
+        
+        <div class="divider">OR</div>
+        
+        <button class="btn btn-secondary google-btn" (click)="signInWithGoogle()">
+          <span class="google-icon">🔍</span>
+          <span>Sign in with Google</span>
+        </button>
+      </div>
+
+      <!-- Sign Up Form -->
+      <div class="tab-content" [class.active]="activeTab === 'signup'">
+        <form class="login-form" (ngSubmit)="onSignUp()">
+          <div class="form-group">
+            <input 
+              type="text" 
+              class="form-input" 
+              placeholder="Full Name" 
+              [(ngModel)]="signUpData.fullName"
+              required>
+          </div>
+          <div class="form-group">
+            <input 
+              type="email" 
+              class="form-input" 
+              placeholder="Email Address" 
+              [(ngModel)]="signUpData.email"
+              required>
+          </div>
+          <div class="form-group">
+            <input 
+              type="tel" 
+              class="form-input" 
+              placeholder="Phone Number (+968)" 
+              [(ngModel)]="signUpData.phone"
+              required>
+          </div>
+          <div class="form-group">
+            <input 
+              type="password" 
+              class="form-input" 
+              placeholder="Password" 
+              [(ngModel)]="signUpData.password"
+              required>
+          </div>
+          <div class="form-group">
+            <input 
+              type="password" 
+              class="form-input" 
+              placeholder="Confirm Password" 
+              [(ngModel)]="signUpData.confirmPassword"
+              required>
+          </div>
+          <div class="form-group">
+            <select class="form-input" [(ngModel)]="signUpData.taxResidency" required>
+              <option value="">Tax Residency Status</option>
+              <option value="resident">Tax Resident</option>
+              <option value="non-resident">Non-Tax Resident</option>
+            </select>
+          </div>
+          <div class="form-options">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="signUpData.agreeTerms" required>
+              <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary login-btn" [disabled]="isLoading">
+            {{ isLoading ? 'Creating Account...' : 'CREATE ACCOUNT' }}
+          </button>
+        </form>
+        
+        <div class="divider">OR</div>
+        
+        <button class="btn btn-secondary google-btn" (click)="signUpWithGoogle()">
+          <span class="google-icon">🔍</span>
+          <span>Sign up with Google</span>
+        </button>
+      </div>
+
+      <!-- Help Section -->
+      <div class="help-section">
+        Need help? <a href="#" class="help-link">Contact us</a>
+      </div>
+
+    </div>
+  </div>
+</div>
