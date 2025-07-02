@@ -1,3 +1,5 @@
+<img src="[Design a playful and](https://github.com/user-attachments/assets/2fe62a77-36b3-4ad2-9c8b-7539b2a89e55)
+" alt="Floosy Logo" width="250"/>
 Floosy 💰
 Personal Finance & Tax Compliance Platform for Oman
 A simplified web-based platform designed to help individuals and small businesses in Oman track their income, manage expenses, and calculate tax obligations under the new Omani income tax law.
