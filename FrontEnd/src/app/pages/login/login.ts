@@ -83,23 +83,20 @@ export class Login {
       next: (response) => {
         this.isLoading = false;
         
-        // Handle both uppercase and lowercase response properties
-        const token = response.token || response.Token;
-        const message = response.message || response.Message;
-        
-        if (token) {
+        // Check if login was successful
+        if (response.success !== false && (response.token || response.Token)) {
           this.successMessage = 'Login successful! Redirecting...';
           // Delay navigation to show success message
           setTimeout(() => {
             this.router.navigate([this.returnUrl]);
           }, 1000);
         } else {
-          this.errorMessage = message || 'Login failed. Please try again.';
+          this.errorMessage = response.message || response.Message || 'Login failed. Please try again.';
         }
       },
       error: (error) => {
         this.isLoading = false;
-        this.handleError(error, 'Login failed. Please check your credentials and try again.');
+        this.errorMessage = error.message || 'Login failed. Please check your credentials and try again.';
       }
     });
   }
@@ -122,17 +119,22 @@ export class Login {
     this.authService.register(registerRequest).subscribe({
       next: (response) => {
         this.isLoading = false;
-        this.successMessage = 'Account created successfully! Please sign in to continue.';
-        // Auto-switch to sign in tab and pre-fill email
-        setTimeout(() => {
-          this.signInData.email = this.signUpData.email;
-          this.activeTab = 'signin';
-          this.resetSignUpForm();
-        }, 2000);
+        
+        if (response.success !== false) {
+          this.successMessage = 'Account created successfully! Please sign in to continue.';
+          // Auto-switch to sign in tab and pre-fill email
+          setTimeout(() => {
+            this.signInData.email = this.signUpData.email;
+            this.activeTab = 'signin';
+            this.resetSignUpForm();
+          }, 2000);
+        } else {
+          this.errorMessage = response.message || response.Message || 'Registration failed. Please try again.';
+        }
       },
       error: (error) => {
         this.isLoading = false;
-        this.handleError(error, 'Registration failed. Please try again.');
+        this.errorMessage = error.message || 'Registration failed. Please try again.';
       }
     });
   }
@@ -187,22 +189,6 @@ export class Login {
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  }
-
-  private handleError(error: any, defaultMessage: string): void {
-    console.error('Auth error:', error);
-    
-    if (error.error?.message || error.error?.Message) {
-      this.errorMessage = error.error.message || error.error.Message;
-    } else if (error.error?.errors) {
-      // Handle validation errors from backend
-      const errors = Object.values(error.error.errors).flat();
-      this.errorMessage = (errors as string[]).join(', ');
-    } else if (error.message) {
-      this.errorMessage = error.message;
-    } else {
-      this.errorMessage = defaultMessage;
-    }
   }
 
   private resetSignUpForm(): void {

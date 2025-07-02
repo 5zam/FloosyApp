@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -41,29 +41,32 @@ export class AuthService {
   }
   
   login(credentials: LoginRequest): Observable<AuthResponse> {
+    console.log('Attempting login with:', credentials.email);
+    console.log('API URL:', this.API_URL);
+    
     return this.http.post<AuthResponse>(`${this.API_URL}/login`, credentials)
       .pipe(
         tap(response => {
+          console.log('Login response:', response);
           // Handle both uppercase and lowercase token properties
           const token = response.token || response.Token;
-          if (token) {
-            this.setAuthData(token);
+          if (token && response.success !== false) {
+            this.setAuthData(token, response.user);
           }
         }),
-        catchError(error => {
-          console.error('Login error:', error);
-          return throwError(() => error);
-        })
+        catchError(error => this.handleError(error, 'Login'))
       );
   }
   
   register(userData: RegisterRequest): Observable<AuthResponse> {
+    console.log('Attempting registration with:', userData.email);
+    
     return this.http.post<AuthResponse>(`${this.API_URL}/register`, userData)
       .pipe(
-        catchError(error => {
-          console.error('Registration error:', error);
-          return throwError(() => error);
-        })
+        tap(response => {
+          console.log('Registration response:', response);
+        }),
+        catchError(error => this.handleError(error, 'Registration'))
       );
   }
   
@@ -96,36 +99,40 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
   
-  private setAuthData(token: string): void {
+  private setAuthData(token: string, user?: AppUser): void {
     localStorage.setItem('auth_token', token);
     this.tokenSubject.next(token);
     
-    // Decode JWT to extract user info
-    try {
-      const payload = this.decodeJWTPayload(token);
-      const user: AppUser = {
-        id: payload.sub || payload.nameid || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || 'unknown',
-        userName: payload.unique_name || payload.name || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '',
-        email: payload.email || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || '',
-        fullName: payload.FullName || payload.given_name || payload.name || 'User',
-        emailConfirmed: true
-      };
-      
-      localStorage.setItem('user_data', JSON.stringify(user));
-      this.currentUserSubject.next(user);
-    } catch (error) {
-      console.error('Error decoding JWT:', error);
-      // Fallback user data
-      const fallbackUser: AppUser = {
-        id: 'temp-id',
-        userName: 'user',
-        email: 'user@example.com',
-        fullName: 'User',
-        emailConfirmed: true
-      };
-      localStorage.setItem('user_data', JSON.stringify(fallbackUser));
-      this.currentUserSubject.next(fallbackUser);
+    let userData: AppUser;
+    
+    if (user) {
+      userData = user;
+    } else {
+      // Decode JWT to extract user info
+      try {
+        const payload = this.decodeJWTPayload(token);
+        userData = {
+          id: payload.sub || payload.nameid || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || 'unknown',
+          userName: payload.unique_name || payload.name || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '',
+          email: payload.email || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || '',
+          fullName: payload.FullName || payload.given_name || payload.name || 'User',
+          emailConfirmed: true
+        };
+      } catch (error) {
+        console.error('Error decoding JWT:', error);
+        // Fallback user data
+        userData = {
+          id: 'temp-id',
+          userName: 'user',
+          email: 'user@example.com',
+          fullName: 'User',
+          emailConfirmed: true
+        };
+      }
     }
+    
+    localStorage.setItem('user_data', JSON.stringify(userData));
+    this.currentUserSubject.next(userData);
   }
   
   private clearAuthData(): void {
@@ -145,5 +152,26 @@ export class AuthService {
         .join('')
     );
     return JSON.parse(jsonPayload);
+  }
+  
+  private handleError(error: HttpErrorResponse, operation: string): Observable<never> {
+    console.error(`${operation} error:`, error);
+    
+    let errorMessage = 'An unexpected error occurred';
+    
+    if (error.error?.message || error.error?.Message) {
+      errorMessage = error.error.message || error.error.Message;
+    } else if (error.error?.errors) {
+      const errors = Object.values(error.error.errors).flat();
+      errorMessage = (errors as string[]).join(', ');
+    } else if (error.status === 0) {
+      errorMessage = 'Unable to connect to server. Please check if the backend is running.';
+    } else if (error.status === 401) {
+      errorMessage = 'Invalid credentials. Please check your email and password.';
+    } else if (error.status >= 500) {
+      errorMessage = 'Server error. Please try again later.';
+    }
+    
+    return throwError(() => ({ ...error, message: errorMessage }));
   }
 }
